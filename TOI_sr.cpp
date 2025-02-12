@@ -1,7 +1,8 @@
 ﻿#include <iostream>
 #include <string>
 #include <limits>
-#define ARR_LEN 5 //инструкция предпроцессору заменить при компеляции ARR_LEN на 3
+#include <iomanip>
+#define ARR_LEN 1 //инструкция предпроцессору заменить при компеляции ARR_LEN на 1
 
 #pragma region PrintLine & SkipString
 
@@ -1000,40 +1001,95 @@ NickNameBenTreeNode* CreateNickNameTree()
 
 #pragma region Вывод
 
-// Функция для вывода дерева в консоль
-void printNickNameTree(NickNameBenTreeNode* root, int level = 0) 
+// Вспомогательная рекурсивная функция для вывода дерева в виде таблицы
+void printNode(NickNameBenTreeNode* node) {
+    if (node != nullptr) {
+        printNode(node->left); // Сначала левое поддерево
+
+        int index = node->index; // Получаем индекс музыканта
+
+        // Вывод данных в формате таблицы
+        std::cout << std::left << std::setw(6) << index+1
+            << std::setw(12) << musicians[index].nickname
+            << std::setw(15) << musicians[index].realName 
+            << std::setw(10) << musicians[index].label
+            << std::setw(10) << musicians[index].listenersCount << std::endl;
+
+        printNode(node->right); // Затем правое поддерево
+    }
+}
+
+// Функция для вывода дерева в виде таблицы
+void printNicknameTreeTable(NickNameBenTreeNode* root) {
+    if (root == nullptr) return;
+
+    // Шапка таблицы
+    SkipString();
+    std::cout << std::left << std::setw(6) << "Номер"
+        << std::setw(12) << "Псевдоним"
+        << std::setw(15) << "Настоящее имя"
+        << std::setw(10) << "Лейбл"
+        << std::setw(10) << "Количество слушателей" << std::endl;
+
+    printNode(root); // Начинаем обход с корня
+}
+
+#pragma endregion
+
+#pragma region Рекурсивнный бинарный поиск
+
+// Функция запроса поиска
+void performSearch(NickNameBenTreeNode* root) 
 {
+    std::string searchNickname;
+    std::cout << "Введите псевдоним для поиска: ";
+    std::cin >> searchNickname;
 
-    if (root != nullptr) 
+    std::cout << "Рекурсивный поиск:" << std::endl;
+    recursiveSearch(root, searchNickname);
+}
+
+// Функция для управления циклом поиска
+void searchLoop(NickNameBenTreeNode* root) {
+    char continueSearch = '+';
+
+    while (continueSearch == '+') 
     {
-        // Сначала правое поддерево
-        printNickNameTree(root->right, level + 1);
+        performSearch(root); // Вызываем функцию performSearch
 
-        // Вывод отступов для формирования структуры дерева
-        for (int i = 0; i < level; ++i) 
-        {
-            std::cout << "    ";
-        }
+        std::cout << "Продолжаем поиск? (+/-): ";
+        std::cin >> continueSearch;
+    }
+}
 
-        // Вывод значения узла
-        std::cout << root->nickname << " (" << root->index << ")" << std::endl;
+//сам поиск
+void recursiveSearch(NickNameBenTreeNode* root, const std::string& targetNickname) {
+    if (root == nullptr)
+    {
+        std::cout << "Музыкант с псевдонимом '" << targetNickname << "' не найден" << std::endl;
+        return;
+    }
 
-        // Затем левое поддерево
-        printNickNameTree(root->left, level + 1);
+    if (targetNickname == root->nickname) {
+        int index = root->index;
+
+        std::cout << "Псевдоним исполнителя: " << musicians[index].nickname << std::endl;
+        std::cout << "Настоящее имя исполнителя: " << musicians[index].realName << std::endl;
+        std::cout << "Лейбл исполнителя: " << musicians[index].label << std::endl;
+        std::cout << "Количество слушателей в месяц у исполнителя: " << musicians[index].listenersCount << std::endl;
+        return;
+    }
+    else if (targetNickname < root->nickname) {
+        recursiveSearch(root->left, targetNickname);
+    }
+    else {
+        recursiveSearch(root->right, targetNickname);
     }
 }
 
 #pragma endregion
 
-
-
 #pragma endregion
-
-//#pragma region ListenersCount
-//
-//
-//
-//#pragma endregion
 
 #pragma endregion
 
@@ -1079,7 +1135,10 @@ int main()
 
     NickNameBenTreeNode* root = CreateNickNameTree(); //создание дерева
     std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
-    printNickNameTree(root);
+    printNicknameTreeTable(root);
+    SkipString();
+
+    searchLoop(root);
 
 #pragma endregion
 
