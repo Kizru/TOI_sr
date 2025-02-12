@@ -2,7 +2,7 @@
 #include <string>
 #include <limits>
 #include <iomanip>
-#define ARR_LEN 1 //инструкция предпроцессору заменить при компеляции ARR_LEN на 1
+#define ARR_LEN 3 //инструкция предпроцессору заменить при компеляции ARR_LEN на 1
 
 #pragma region PrintLine & SkipString
 
@@ -1115,51 +1115,67 @@ void RemoveMusicianByNickname(const std::string& nicknameToRemove, NickNameBenTr
 
     if (indexToRemove == -1)
     {
-        std::cout << "Музыкант с псевдонимом '" << nicknameToRemove << "' не найден." << std::endl;
+        std::cout << "Музыкант с псевдонимом '" << nicknameToRemove << "' не найден" << std::endl;
         return;
     }
 
     // Помечаем музыканта как удаленного, присваивая псевдониму "nothing"
     musicians[indexToRemove].nickname = "nothing";
 
-    // Перестраиваем дерево, исключая удаленный элемент.
+    // Перестраиваем дерево, исключая удаленный элемент
     NickNameBenTreeNode* oldRoot = root;
     root = CreateNickNameTree();
-
-    std::cout << "Музыкант с псевдонимом '" << nicknameToRemove << "' удален." << std::endl;
 }
 
-// Функция, которая спрашивает пользователя, хочет ли он удалить элемент
-void AskUserForDeletion(NickNameBenTreeNode*& root)
+// Функция, которая запрашивает псевдоним для удаления или останавливает процесс
+void AskUserForDeletionLoop(NickNameBenTreeNode*& root) 
 {
-    std::string answer;
-    bool validAnswer = false;
+    std::string input;
+    bool continueDeleting = true;
+    int deletedCount = 0;
 
-    while (!validAnswer) {
-        std::cout << "Удалить элемент по псевдониму? (+/-): ";
-        std::cin >> answer;
+    while (continueDeleting) 
+    {
+        // Проверяем, остались ли еще элементы для удаления
+        bool hasElements = false;
 
-        if (answer == "+" || answer == "-")
+        for (int i = 0; i < ARR_LEN; ++i) 
         {
-            validAnswer = true;
+            if (musicians[i].nickname != "nothing") 
+            {
+                hasElements = true;
+                break;
+            }
         }
+
+        if (!hasElements) 
+        {
+            std::cout << "Вы удалили все элементы" << std::endl;
+            PrintLine();
+            break; // Выход из цикла и завершение работы
+        }
+
+        std::cout << "Введите псевдоним для удаления (или '-' для остановки): ";
+        std::cin >> input;
+
+        if (input == "-")
+        {
+            continueDeleting = false;
+            SkipString();
+            std::cout << "Полученное дерево:" << std::endl;
+            printNicknameTreeTable(root);
+            PrintLine();
+
+        }
+
         else
         {
-            std::cout << "Ошибка, введите '+' или '-'." << std::endl;
+            RemoveMusicianByNickname(input, root);
+            SkipString();
+            std::cout << "Полученное дерево:" << std::endl;
+            printNicknameTreeTable(root);
+            SkipString();
         }
-    }
-
-    if (answer == "+")
-    {
-        std::string nicknameToRemove;
-        std::cout << "Введите псевдоним для удаления: ";
-        std::cin >> nicknameToRemove;
-        RemoveMusicianByNickname(nicknameToRemove, root);
-    }
-
-    else
-    {
-        std::cout << "Удаление отменено." << std::endl;
     }
 }
 
@@ -1207,22 +1223,18 @@ int main()
 //
 //#pragma endregion
 
-//#pragma region Задание 2
-//
-//    NickNameBenTreeNode* root = CreateNickNameTree(); //создание дерева
-//    std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
-//    printNicknameTreeTable(root);
-//    SkipString();
-//
-//    performSearchAndLoop(root);
-//    SkipString();
-//
-//    AskUserForDeletion(root);
-//    SkipString();
-//    std::cout << "Полученное дерево:" << std::endl;
-//    printNicknameTreeTable(root);
-//    PrintLine();
-//
-//#pragma endregion
+#pragma region Задание 2
+
+    NickNameBenTreeNode* root = CreateNickNameTree(); //создание дерева
+    std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
+    printNicknameTreeTable(root);
+    SkipString();
+
+  //performSearchAndLoop(root);
+  //SkipString();
+
+    AskUserForDeletionLoop(root);
+
+#pragma endregion
 
 }
