@@ -944,14 +944,14 @@ struct NickNameBenTreeNode
     NickNameBenTreeNode(std::string nick, int idx) : nickname(nick), index(idx), left(nullptr), right(nullptr) {}
 };
 
-struct ListenersBenTree
+struct ListenersBenTreeNode
 {
     uint64_t listeners;
     int index; // Индекс элемента в массиве
-    NickNameBenTreeNode* left;
-    NickNameBenTreeNode* right;
+    ListenersBenTreeNode* left;
+    ListenersBenTreeNode* right;
 
-    ListenersBenTree(uint64_t listeners, int idx) : listeners(listeners), index(idx), left(nullptr), right(nullptr) {}
+    ListenersBenTreeNode(uint64_t listeners, int idx) : listeners(listeners), index(idx), left(nullptr), right(nullptr) {}
 };
 
 #pragma endregion
@@ -1009,12 +1009,12 @@ NickNameBenTreeNode* CreateNickNameTree()
 
 #pragma region Вывод
 
-//Вспомогательная рекурсивная функция для вывода дерева в виде таблицы
-void printNode(NickNameBenTreeNode* node)
+//Вспомогательная функция для вывода дерева в виде таблицы
+void printNicknameNode(NickNameBenTreeNode* node)
 {
     if (node != nullptr)
     {
-        printNode(node->left); // Сначала левое поддерево
+        printNicknameNode(node->left); // Сначала левое поддерево
 
         int index = node->index; // Получаем индекс музыканта
 
@@ -1025,7 +1025,7 @@ void printNode(NickNameBenTreeNode* node)
             << std::setw(10) << musicians[index].label
             << std::setw(10) << musicians[index].listenersCount << std::endl;
 
-        printNode(node->right); // Затем правое поддерево
+        printNicknameNode(node->right); // Затем правое поддерево
     }
 }
 
@@ -1042,7 +1042,7 @@ void printNicknameTreeTable(NickNameBenTreeNode* root)
             << std::setw(10) << "Лейбл"
             << std::setw(10) << "Количество слушателей" << std::endl;
 
-        printNode(root); // Начинаем обход с корня
+        printNicknameNode(root); // Начинаем обход с корня
     }
 }
 
@@ -1077,7 +1077,7 @@ void recursiveBinarySearch(NickNameBenTreeNode* node, const std::string& searchN
 }
 
 //Сама реализация бинарного поиска
-void performSearchAndLoop(NickNameBenTreeNode* root) {
+void performSearchAndLoopN(NickNameBenTreeNode* root) {
     std::string searchNickname;
 
     while (true) 
@@ -1128,16 +1128,15 @@ void RemoveMusicianByNickname(const std::string& nicknameToRemove, NickNameBenTr
 }
 
 // Функция, которая запрашивает псевдоним для удаления или останавливает процесс
-void AskUserForDeletionLoop(NickNameBenTreeNode*& root) 
+void AskUserForDeletionLoopN(NickNameBenTreeNode*& root) 
 {
     std::string input;
     bool continueDeleting = true;
-    int deletedCount = 0;
 
     while (continueDeleting) 
     {
         // Проверяем, остались ли еще элементы для удаления
-        bool hasElements = false;
+        int hasElements = false;
 
         for (int i = 0; i < ARR_LEN; ++i) 
         {
@@ -1183,8 +1182,264 @@ void AskUserForDeletionLoop(NickNameBenTreeNode*& root)
 
 #pragma endregion
 
+#pragma region ListenersCount
+
+#pragma region Создание и заполнение
+
+//создание и расположение узлов в дереве
+ListenersBenTreeNode* FillListenersTree(ListenersBenTreeNode* link, int index)
+{
+    //создание узла
+    if (link == nullptr)
+    {
+        //Проверка на удаленность при создании узла
+        if (musicians[index].listenersCount == -1)
+            return nullptr;
+
+        ListenersBenTreeNode* node = new ListenersBenTreeNode(musicians[index].listenersCount, index);
+        return node;
+    }
+
+    //Проверка на удаление перед сравнением
+    if (musicians[index].listenersCount != -1)
+    {
+        //помещение узла в левую ветвь дерева
+        if (musicians[index].listenersCount < link->listeners)
+        {
+            link->left = FillListenersTree(link->left, index);
+        }
+
+        //помещение узла в правую ветвь дерева
+        if (musicians[index].listenersCount > link->listeners)
+        {
+            link->right = FillListenersTree(link->right, index);
+        }
+    }
+
+    return link;
+}
+
+//само построение дерева
+ListenersBenTreeNode* CreateListenersTree()
+{
+    ListenersBenTreeNode* root = nullptr;
+
+    for (int i = 0; i < ARR_LEN; i++)
+    {
+        root = FillListenersTree(root, i); // root нужно обновлять
+    }
+    return root;
+}
+
 #pragma endregion
 
+#pragma region Вывод
+
+//Вспомогательная функция для вывода дерева в виде таблицы
+void printListenersNode(ListenersBenTreeNode* node)
+{
+    if (node != nullptr)
+    {
+        printListenersNode(node->left); // Сначала левое поддерево
+
+        int index = node->index; // Получаем индекс музыканта
+
+        //Вывод данных в формате таблицы
+        std::cout << std::left << std::setw(6) << index + 1
+            << std::setw(12) << musicians[index].nickname
+            << std::setw(15) << musicians[index].realName
+            << std::setw(10) << musicians[index].label
+            << std::setw(10) << musicians[index].listenersCount << std::endl;
+
+        printListenersNode(node->right); // Затем правое поддерево
+    }
+}
+
+//Функция для вывода дерева в виде таблицы
+void printListenersTreeTable(ListenersBenTreeNode* root)
+{
+    if (root != nullptr)
+    {
+        //Шапка таблицы
+        SkipString();
+        std::cout << std::left << std::setw(6) << "Номер"
+            << std::setw(12) << "Псевдоним"
+            << std::setw(15) << "Настоящее имя"
+            << std::setw(10) << "Лейбл"
+            << std::setw(10) << "Количество слушателей" << std::endl;
+
+        printListenersNode(root); // Начинаем обход с корня
+    }
+}
+
+#pragma endregion
+
+#pragma region Итерационный бинарный поиск
+
+// Итерационная версия бинарного поиска по дереву
+void iterativeBinarySearch(ListenersBenTreeNode* node, const uint64_t& searchNickname) {
+    ListenersBenTreeNode* current = node;
+
+    while (current != nullptr) 
+    {
+        if (searchNickname == current->listeners) 
+        {
+            int index = current->index;
+            SkipString();
+            std::cout << "Псевдоним исполнителя: " << musicians[index].nickname << std::endl;
+            std::cout << "Настоящее имя исполнителя: " << musicians[index].realName << std::endl;
+            std::cout << "Лейбл исполнителя: " << musicians[index].label << std::endl;
+            std::cout << "Количество слушателей в месяц у исполнителя: " << musicians[index].listenersCount << std::endl;
+            SkipString();
+            return; // Элемент найден, выходим из функции
+        }
+
+        else if (searchNickname < current->listeners) 
+        {
+            current = current->left; // Переходим в левое поддерево
+        }
+
+        else 
+        {
+            current = current->right; // Переходим в правое поддерево
+        }
+    }
+
+    // Если цикл завершился и элемент не найден
+    std::cout << "Музыкант с количеством слушателей " << searchNickname << " не найден" << std::endl;
+}
+
+// Функция для выполнения поиска в цикле
+void performSearchAndLoopL(ListenersBenTreeNode* root)
+{
+    std::string inputData;
+    bool isConverted = false;
+    int number;
+
+    while (!isConverted)
+    {
+        std::cout << "Введите количество слушателей в месяц для поиска: ";
+        std::cin >> inputData;
+    
+        if (inputData == "-")
+            {
+                PrintLine();
+                break; // Выход из цикла, если введен "-"
+            }
+    
+        try
+            {
+                size_t pos;
+                number = stoul(inputData, &pos);
+
+                if (pos == inputData.length())
+                    isConverted = true;
+                else
+                    std::cout << "Количество слушателей за месяц должно быть целым беззнаковым числом" << std::endl;
+            }
+    
+        catch (std::invalid_argument)
+        {
+            std::cout << "Количество слушателей за месяц должно быть числом" << std::endl;
+        }
+    
+        catch (std::out_of_range)
+        {
+            std::cout << "Количество слушателей за месяц должно быть неотрицательным и не превышающим 140697553867517" << std::endl; // 140697553867517 - граница типа uint64_t
+        }
+    }
+
+    iterativeBinarySearch(root, number);
+}
+
+#pragma endregion
+
+//#pragma region Удаление элементов
+//
+//// Функция для удаления элемента из массива и дерева по псевдониму
+//void RemoveMusicianByNickname(const std::string& nicknameToRemove, NickNameBenTreeNode*& root)
+//{
+//    int indexToRemove = -1;
+//
+//    // Ищем индекс музыканта по псевдониму
+//    for (int i = 0; i < ARR_LEN; ++i) {
+//        if (musicians[i].nickname == nicknameToRemove)
+//        {
+//            indexToRemove = i;
+//            break;
+//        }
+//    }
+//
+//    if (indexToRemove == -1)
+//    {
+//        std::cout << "Музыкант с псевдонимом '" << nicknameToRemove << "' не найден" << std::endl;
+//        return;
+//    }
+//
+//    // Помечаем музыканта как удаленного, присваивая псевдониму "nothing"
+//    musicians[indexToRemove].nickname = "nothing";
+//
+//    // Перестраиваем дерево, исключая удаленный элемент
+//    NickNameBenTreeNode* oldRoot = root;
+//    root = CreateNickNameTree();
+//}
+//
+//// Функция, которая запрашивает псевдоним для удаления или останавливает процесс
+//void AskUserForDeletionLoop(NickNameBenTreeNode*& root)
+//{
+//    std::string input;
+//    bool continueDeleting = true;
+//
+//    while (continueDeleting)
+//    {
+//        // Проверяем, остались ли еще элементы для удаления
+//        int hasElements = false;
+//
+//        for (int i = 0; i < ARR_LEN; ++i)
+//        {
+//            if (musicians[i].nickname != "nothing")
+//            {
+//                hasElements = true;
+//                break;
+//            }
+//        }
+//
+//        if (!hasElements)
+//        {
+//            std::cout << "Вы удалили все элементы" << std::endl;
+//            PrintLine();
+//            break; // Выход из цикла и завершение работы
+//        }
+//
+//        std::cout << "Введите псевдоним для удаления (или '-' для остановки): ";
+//        std::cin >> input;
+//
+//        if (input == "-")
+//        {
+//            continueDeleting = false;
+//            SkipString();
+//            std::cout << "Полученное дерево:" << std::endl;
+//            printNicknameTreeTable(root);
+//            PrintLine();
+//
+//        }
+//
+//        else
+//        {
+//            RemoveMusicianByNickname(input, root);
+//            SkipString();
+//            std::cout << "Полученное дерево:" << std::endl;
+//            printNicknameTreeTable(root);
+//            SkipString();
+//        }
+//    }
+//}
+//
+//#pragma endregion
+
+#pragma endregion
+
+#pragma endregion
 
 int main()
 {
@@ -1225,15 +1480,27 @@ int main()
 
 #pragma region Задание 2
 
-    NickNameBenTreeNode* root = CreateNickNameTree(); //создание дерева
+    //NickNameBenTreeNode* root1 = CreateNickNameTree(); //создание дерева
+    //std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
+    //printNicknameTreeTable(root1);
+    //SkipString();
+
+    //performSearchAndLoopN(root1);
+    //SkipString();
+
+    //AskUserForDeletionLoopN(root1);
+    //SkipString();
+
+    ListenersBenTreeNode* root2 = CreateListenersTree(); //создание дерева
     std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
-    printNicknameTreeTable(root);
+    printListenersTreeTable(root2);
     SkipString();
 
-  //performSearchAndLoop(root);
-  //SkipString();
+    performSearchAndLoopL(root2);
+    SkipString();
 
-    AskUserForDeletionLoop(root);
+    //AskUserForDeletionLoopL(root2);
+    SkipString();
 
 #pragma endregion
 
