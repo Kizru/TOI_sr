@@ -2,6 +2,7 @@
 #include <string>
 #include <limits>
 #include <iomanip>
+
 #define ARR_LEN 3 //инструкция предпроцессору заменить при компеляции ARR_LEN на 1
 
 #pragma region PrintLine & SkipString
@@ -1277,7 +1278,8 @@ void printListenersTreeTable(ListenersBenTreeNode* root)
 #pragma region Итерационный бинарный поиск
 
 // Итерационная версия бинарного поиска по дереву
-void iterativeBinarySearch(ListenersBenTreeNode* node, const uint64_t& searchNickname) {
+void iterativeBinarySearch(ListenersBenTreeNode* node, const uint64_t& searchNickname) 
+{
     ListenersBenTreeNode* current = node;
 
     while (current != nullptr) 
@@ -1313,21 +1315,23 @@ void iterativeBinarySearch(ListenersBenTreeNode* node, const uint64_t& searchNic
 void performSearchAndLoopL(ListenersBenTreeNode* root)
 {
     std::string inputData;
-    bool isConverted = false;
+    bool isConverted = false, ended = false;
     int number;
+ 
+    do{
+        
+        do{
+            std::cout << "Введите количество слушателей в месяц для поиска(для выхода введите -): ";
+            std::cin >> inputData;
 
-    while (!isConverted)
-    {
-        std::cout << "Введите количество слушателей в месяц для поиска: ";
-        std::cin >> inputData;
-    
-        if (inputData == "-")
+            if (inputData == "-")
             {
                 PrintLine();
+                ended = true;
                 break; // Выход из цикла, если введен "-"
             }
-    
-        try
+
+            try
             {
                 size_t pos;
                 number = stoul(inputData, &pos);
@@ -1337,19 +1341,22 @@ void performSearchAndLoopL(ListenersBenTreeNode* root)
                 else
                     std::cout << "Количество слушателей за месяц должно быть целым беззнаковым числом" << std::endl;
             }
-    
-        catch (std::invalid_argument)
-        {
-            std::cout << "Количество слушателей за месяц должно быть числом" << std::endl;
-        }
-    
-        catch (std::out_of_range)
-        {
-            std::cout << "Количество слушателей за месяц должно быть неотрицательным и не превышающим 140697553867517" << std::endl; // 140697553867517 - граница типа uint64_t
-        }
-    }
 
-    iterativeBinarySearch(root, number);
+            catch (std::invalid_argument)
+            {
+                std::cout << "Количество слушателей за месяц должно быть числом" << std::endl;
+            }
+
+            catch (std::out_of_range)
+            {
+                std::cout << "Количество слушателей за месяц должно быть неотрицательным и не превышающим 140697553867517" << std::endl; // 140697553867517 - граница типа uint64_t
+            }
+
+        } while (!isConverted);
+
+        iterativeBinarySearch(root, number);
+
+    } while (!ended);
 }
 
 #pragma endregion
@@ -1447,61 +1454,61 @@ int main()
     FillMusicians();
     //PrintMusicians();
 
-//#pragma region Задание 1
-//
-//    SkipString();
-//    CreateNicknameIndex();
-//    //NickNameIndexSort();
-//    PrintNicknameIndexes();
-//    //NickNameBinSearch();
-//    //NicknameEdit();
-//    NicknameDelition();
-//    PrintRedactedMusicians();
-//
-//    /*SkipString();
-//    NickNameIndexReversedSort();
-//    PrintNicknameIndexes();*/
-//
-//
-//    SkipString();
-//    CreateListenersCountIndex();
-//    //ListenersCountIndexSort();
-//    PrintListenersCountIndexes();
-//    //ListenersCountBinSerchRealise();
-//    //ListenersEdit();
-//    ListenersDelition();
-//    PrintRedactedMusicians();
-//
-//    /*SkipString();
-//    ListenersCountIndexReversedSort();
-//    PrintListenersCountIndexes();*/
-//
-//#pragma endregion
+#pragma region Задание 1
 
-#pragma region Задание 2
-
-    //NickNameBenTreeNode* root1 = CreateNickNameTree(); //создание дерева
-    //std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
-    //printNicknameTreeTable(root1);
-    //SkipString();
-
-    //performSearchAndLoopN(root1);
-    //SkipString();
-
-    //AskUserForDeletionLoopN(root1);
-    //SkipString();
-
-    ListenersBenTreeNode* root2 = CreateListenersTree(); //создание дерева
-    std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
-    printListenersTreeTable(root2);
     SkipString();
+    //CreateNicknameIndex();
+    ////NickNameIndexSort();
+    //PrintNicknameIndexes();
+    ////NickNameBinSearch();
+    ////NicknameEdit();
+    //NicknameDelition();
+    //PrintRedactedMusicians();
 
-    performSearchAndLoopL(root2);
-    SkipString();
+    /*SkipString();
+    NickNameIndexReversedSort();
+    PrintNicknameIndexes();*/
 
-    //AskUserForDeletionLoopL(root2);
+
     SkipString();
+    CreateListenersCountIndex();
+    //ListenersCountIndexSort();
+    PrintListenersCountIndexes();
+    //ListenersCountBinSerchRealise();
+    ListenersEdit();
+    //ListenersDelition();
+    //PrintRedactedMusicians();
+
+    /*SkipString();
+    ListenersCountIndexReversedSort();
+    PrintListenersCountIndexes();*/
 
 #pragma endregion
+
+//#pragma region Задание 2
+//
+//    //NickNameBenTreeNode* root1 = CreateNickNameTree(); //создание дерева
+//    //std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
+//    //printNicknameTreeTable(root1);
+//    //SkipString();
+//
+//    //performSearchAndLoopN(root1);
+//    //SkipString();
+//
+//    //AskUserForDeletionLoopN(root1);
+//    //SkipString();
+//
+//    ListenersBenTreeNode* root2 = CreateListenersTree(); //создание дерева
+//    std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
+//    printListenersTreeTable(root2);
+//    SkipString();
+//
+//    performSearchAndLoopL(root2);
+//    SkipString();
+//
+//    //AskUserForDeletionLoopL(root2);
+//    SkipString();
+//
+//#pragma endregion
 
 }
