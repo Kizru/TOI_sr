@@ -3,7 +3,7 @@
 #include <limits>
 #include <iomanip>
 
-#define ARR_LEN 3 //инструкция предпроцессору заменить при компеляции ARR_LEN на 1
+#define ARR_LEN 1 //инструкция предпроцессору заменить при компеляции ARR_LEN на 1
 
 #pragma region PrintLine & SkipString
 
@@ -976,7 +976,7 @@ NickNameBenTreeNode* FillNicknameTree(NickNameBenTreeNode* link, int index)
     }
 
     //Проверка на "nothing" перед сравнением
-    if (musicians[index].nickname != "nothing")
+    if ((musicians[index].nickname != "nothing") && (musicians[index].listenersCount != -1))
     {
         //помещение узла в левую ветвь дерева
         if (musicians[index].nickname < link->nickname)
@@ -1137,11 +1137,11 @@ void AskUserForDeletionLoopN(NickNameBenTreeNode*& root)
     while (continueDeleting) 
     {
         // Проверяем, остались ли еще элементы для удаления
-        int hasElements = false;
+        bool hasElements = false;
 
         for (int i = 0; i < ARR_LEN; ++i) 
         {
-            if (musicians[i].nickname != "nothing") 
+            if ((musicians[i].nickname != "nothing") && (musicians[i].listenersCount != -1))
             {
                 hasElements = true;
                 break;
@@ -1202,7 +1202,7 @@ ListenersBenTreeNode* FillListenersTree(ListenersBenTreeNode* link, int index)
     }
 
     //Проверка на удаление перед сравнением
-    if (musicians[index].listenersCount != -1)
+    if ((musicians[index].listenersCount != -1) && (musicians[index].nickname != "nothing"))
     {
         //помещение узла в левую ветвь дерева
         if (musicians[index].listenersCount < link->listeners)
@@ -1361,92 +1361,113 @@ void performSearchAndLoopL(ListenersBenTreeNode* root)
 
 #pragma endregion
 
-//#pragma region Удаление элементов
-//
-//// Функция для удаления элемента из массива и дерева по псевдониму
-//void RemoveMusicianByNickname(const std::string& nicknameToRemove, NickNameBenTreeNode*& root)
-//{
-//    int indexToRemove = -1;
-//
-//    // Ищем индекс музыканта по псевдониму
-//    for (int i = 0; i < ARR_LEN; ++i) {
-//        if (musicians[i].nickname == nicknameToRemove)
-//        {
-//            indexToRemove = i;
-//            break;
-//        }
-//    }
-//
-//    if (indexToRemove == -1)
-//    {
-//        std::cout << "Музыкант с псевдонимом '" << nicknameToRemove << "' не найден" << std::endl;
-//        return;
-//    }
-//
-//    // Помечаем музыканта как удаленного, присваивая псевдониму "nothing"
-//    musicians[indexToRemove].nickname = "nothing";
-//
-//    // Перестраиваем дерево, исключая удаленный элемент
-//    NickNameBenTreeNode* oldRoot = root;
-//    root = CreateNickNameTree();
-//}
-//
-//// Функция, которая запрашивает псевдоним для удаления или останавливает процесс
-//void AskUserForDeletionLoop(NickNameBenTreeNode*& root)
-//{
-//    std::string input;
-//    bool continueDeleting = true;
-//
-//    while (continueDeleting)
-//    {
-//        // Проверяем, остались ли еще элементы для удаления
-//        int hasElements = false;
-//
-//        for (int i = 0; i < ARR_LEN; ++i)
-//        {
-//            if (musicians[i].nickname != "nothing")
-//            {
-//                hasElements = true;
-//                break;
-//            }
-//        }
-//
-//        if (!hasElements)
-//        {
-//            std::cout << "Вы удалили все элементы" << std::endl;
-//            PrintLine();
-//            break; // Выход из цикла и завершение работы
-//        }
-//
-//        std::cout << "Введите псевдоним для удаления (или '-' для остановки): ";
-//        std::cin >> input;
-//
-//        if (input == "-")
-//        {
-//            continueDeleting = false;
-//            SkipString();
-//            std::cout << "Полученное дерево:" << std::endl;
-//            printNicknameTreeTable(root);
-//            PrintLine();
-//
-//        }
-//
-//        else
-//        {
-//            RemoveMusicianByNickname(input, root);
-//            SkipString();
-//            std::cout << "Полученное дерево:" << std::endl;
-//            printNicknameTreeTable(root);
-//            SkipString();
-//        }
-//    }
-//}
-//
-//#pragma endregion
+#pragma region Удаление элементов
+
+// Функция для удаления элемента из массива и дерева по псевдониму
+void RemoveMusicianByListeners(const uint64_t& listenersToRemove, ListenersBenTreeNode*& root)
+{
+    int indexToRemove = -1;
+
+    // Ищем индекс музыканта по псевдониму
+    for (int i = 0; i < ARR_LEN; ++i) {
+        if (musicians[i].listenersCount == listenersToRemove)
+        {
+            indexToRemove = i;
+            break;
+        }
+    }
+
+    if (indexToRemove == -1)
+    {
+        std::cout << "Музыкант с количеством слушателей '" << listenersToRemove << "' не найден" << std::endl;
+        return;
+    }
+
+    // Помечаем музыканта как удаленного, присваивая количеству слушателей -1
+    musicians[indexToRemove].listenersCount = -1;
+
+    // Перестраиваем дерево, исключая удаленный элемент
+    ListenersBenTreeNode* oldRoot = root;
+    root = CreateListenersTree();
+}
+
+// Функция, которая запрашивает псевдоним для удаления или останавливает процесс
+void AskUserForDeletionLoopL(ListenersBenTreeNode*& root)
+{
+    std::string inputData;
+    bool isConverted = false, ended = false;
+    int number;
+
+    do {
+        do {
+            std::cout << "Введите количество слушателей в месяц для удаления (для выхода введите -): ";
+            std::cin >> inputData;
+
+            if (inputData == "-")
+            {
+                PrintLine();
+                ended = true;
+                break; // Выход из цикла, если введен "-"
+            }
+
+            try
+            {
+                size_t pos;
+                number = stoul(inputData, &pos);
+
+                if (pos == inputData.length())
+                    isConverted = true;
+                else
+                    std::cout << "Количество слушателей за месяц должно быть целым беззнаковым числом" << std::endl;
+            }
+            catch (std::invalid_argument)
+            {
+                std::cout << "Количество слушателей за месяц должно быть числом" << std::endl;
+            }
+            catch (std::out_of_range)
+            {
+                std::cout << "Количество слушателей за месяц должно быть неотрицательным и не превышающим 140697553867517" << std::endl; // 140697553867517 - граница типа uint64_t
+            }
+
+        } while (!isConverted);
+
+        RemoveMusicianByListeners(number, root);
+
+        SkipString();
+        std::cout << "Полученное дерево:" << std::endl;
+        printListenersTreeTable(root);
+        SkipString();
+
+        // Проверяем, остались ли еще элементы для удаления
+        bool hasElements = false;
+        for (int i = 0; i < ARR_LEN; ++i)
+        {
+            if ((musicians[i].nickname != "nothing") && (musicians[i].listenersCount != -1))
+            {
+                hasElements = true;
+                break;
+            }
+        }
+
+        // Если нет элементов, завершаем программу
+        if (!hasElements) 
+        {
+            std::cout << "Вы удалили все элементы" << std::endl;
+            PrintLine();
+            break;
+        }
+
+    } while (!ended);
+}
+
 
 #pragma endregion
 
 #pragma endregion
+
+#pragma endregion
+
+
 
 int main()
 {
@@ -1455,60 +1476,60 @@ int main()
     //PrintMusicians();
 
 #pragma region Задание 1
-
-    SkipString();
-    //CreateNicknameIndex();
-    ////NickNameIndexSort();
-    //PrintNicknameIndexes();
-    ////NickNameBinSearch();
-    ////NicknameEdit();
-    //NicknameDelition();
-    //PrintRedactedMusicians();
-
-    /*SkipString();
-    NickNameIndexReversedSort();
-    PrintNicknameIndexes();*/
-
-
-    SkipString();
-    CreateListenersCountIndex();
-    //ListenersCountIndexSort();
-    PrintListenersCountIndexes();
-    //ListenersCountBinSerchRealise();
-    ListenersEdit();
-    //ListenersDelition();
-    //PrintRedactedMusicians();
-
-    /*SkipString();
-    ListenersCountIndexReversedSort();
-    PrintListenersCountIndexes();*/
-
+//
+//    SkipString();
+//    CreateNicknameIndex();
+//    NickNameIndexSort();
+//    PrintNicknameIndexes();
+//    NickNameBinSearch();
+//    NicknameEdit();
+//    NicknameDelition();
+//    PrintRedactedMusicians();
+//
+//    SkipString();
+//    NickNameIndexReversedSort();
+//    PrintNicknameIndexes();
+//
+//
+//    SkipString();
+//    CreateListenersCountIndex();
+//    ListenersCountIndexSort();
+//    PrintListenersCountIndexes();
+//    ListenersCountBinSerchRealise();
+//    ListenersEdit();
+//    ListenersDelition();
+//    PrintRedactedMusicians();
+//
+//    SkipString();
+//    ListenersCountIndexReversedSort();
+//    PrintListenersCountIndexes();
+//
 #pragma endregion
 
-//#pragma region Задание 2
-//
-//    //NickNameBenTreeNode* root1 = CreateNickNameTree(); //создание дерева
-//    //std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
-//    //printNicknameTreeTable(root1);
-//    //SkipString();
-//
-//    //performSearchAndLoopN(root1);
-//    //SkipString();
-//
-//    //AskUserForDeletionLoopN(root1);
-//    //SkipString();
-//
-//    ListenersBenTreeNode* root2 = CreateListenersTree(); //создание дерева
-//    std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
-//    printListenersTreeTable(root2);
-//    SkipString();
-//
-//    performSearchAndLoopL(root2);
-//    SkipString();
-//
-//    //AskUserForDeletionLoopL(root2);
-//    SkipString();
-//
-//#pragma endregion
+#pragma region Задание 2
+
+    //NickNameBenTreeNode* root1 = CreateNickNameTree(); //создание дерева
+    //std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
+    //printNicknameTreeTable(root1);
+    //SkipString();
+
+    //performSearchAndLoopN(root1);
+    //SkipString();
+
+    //AskUserForDeletionLoopN(root1);
+    //SkipString();
+
+    //ListenersBenTreeNode* root2 = CreateListenersTree(); //создание дерева
+    //std::cout << "Бинарное дерево, построенное по количеству слушателей у исполнителя:" << std::endl;
+    //printListenersTreeTable(root2);
+    //SkipString();
+
+    //performSearchAndLoopL(root2);
+    //SkipString();
+
+    //AskUserForDeletionLoopL(root2);
+    //SkipString();
+
+#pragma endregion
 
 }
