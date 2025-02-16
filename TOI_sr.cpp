@@ -3,7 +3,7 @@
 #include <limits>
 #include <iomanip>
 
-#define ARR_LEN 2 //инструкция предпроцессору заменить при компеляции ARR_LEN на 1
+#define ARR_LEN 4 //инструкция предпроцессору заменить при компеляции ARR_LEN на 1
 
 #pragma region PrintLine & SkipString
 
@@ -1471,215 +1471,150 @@ void AskUserForDeletionLoopL(ListenersBenTreeNode*& root)
 
 #pragma region Описание структур линейных списков
 
-struct LineArray 
+struct LineArray
 {
     std::string nickname;
-    int index; // Индекс элемента в массиве
+    int index; // Индекс элемента в массиве musicians
+    Musician* musician; // Указатель на соответствующий элемент Musicians
 
     LineArray* nextInputOrder; // Следующий элемент в порядке ввода
-    LineArray* nextNickName;      // Следующий элемент в порядке возрастания ключа 1(nickname)
-    LineArray* nextListeners;      // Следующий элемент в порядке возрастания ключа №2 (listenersCount)
+    LineArray* nextNickName; // Следующий элемент в списке (отсортирован по псевдониму)
+    LineArray* nextListeners; // Следующий элемент в списке (отсортирован по количеству слушателей)
 
-    LineArray(std::string nick, int idx) : nickname(nick), index(idx), nextInputOrder(nullptr), nextNickName(nullptr), nextListeners(nullptr) {}
+    LineArray(Musician* mus, int idx) : nickname(mus->nickname), index(idx), musician(mus), nextInputOrder(nullptr), nextNickName(nullptr), nextListeners(nullptr) {} // Инициализация с данными Musicians
 };
 
 #pragma endregion
 
 #pragma region Сортировки
 
-// Функция для шейкерной сортировки списка по псевдонимам
-void NicknameListSort(LineArray* head)
+// Функция сравнения для сортировки по псевдониму
+bool compareNicknames(LineArray* a, LineArray* b) 
 {
-    if (!head || !head->nextInputOrder) return;
-
-    bool swapped = true;
-    LineArray* left = head;
-    LineArray* right = nullptr;
-
-    while (swapped)
-    {
-        swapped = false;
-        LineArray* current = left;
-
-        while (current->nextInputOrder != right)
-        {
-            if (current->nickname > current->nextInputOrder->nickname)
-            {
-                std::swap(current->nickname, current->nextInputOrder->nickname);
-                std::swap(current->index, current->nextInputOrder->index);
-                swapped = true;
-            }
-            current = current->nextInputOrder;
-        }
-        right = current;
-
-        if (!swapped) break;
-
-        swapped = false;
-        current = right;
-        while (current != left)
-        {
-            if (current->nickname < left->nickname)
-            {
-                std::swap(current->nickname, left->nickname);
-                std::swap(current->index, left->index);
-                swapped = true;
-            }
-            LineArray* prev = head;
-            while (prev->nextInputOrder != current)
-            {
-                prev = prev->nextInputOrder;
-            }
-            left = head;
-            current = prev;
-        }
-    }
+    return a->musician->nickname > b->musician->nickname;
 }
 
-// Функция для шейкерной сортировки списка по количеству слушателей
-void ListenersListSort(LineArray* head)
+// Функция сравнения для сортировки по количеству слушателей
+bool compareListeners(LineArray* a, LineArray* b) {
+    return a->musician->listenersCount > b->musician->listenersCount;
+}
+
+// Функция для сортировки связного списка по псевдониму (без векторов)
+LineArray* SortListByNickname(LineArray* head) 
 {
-    if (!head || !head->nextInputOrder) return;
+    if (head == nullptr || head->nextInputOrder == nullptr) return head;
 
-    bool swapped = true;
-    LineArray* left = head;
-    LineArray* right = nullptr;
+    LineArray* sorted = nullptr;
+    LineArray* current = head;
 
-    while (swapped)
+    while (current != nullptr) 
     {
-        swapped = false;
-        LineArray* current = left;
+        LineArray* next = current->nextInputOrder;
+        LineArray** insertionPoint = &sorted;
 
-        while (current->nextInputOrder != right)
+        while (*insertionPoint != nullptr && compareNicknames(current, *insertionPoint)) 
         {
-            if (musicians[current->index].listenersCount > musicians[current->nextInputOrder->index].listenersCount)
-            {
-                std::swap(current->nickname, current->nextInputOrder->nickname);
-                std::swap(current->index, current->nextInputOrder->index);
-                swapped = true;
-            }
-            current = current->nextInputOrder;
+            insertionPoint = &((*insertionPoint)->nextNickName);
         }
-        right = current;
 
-        if (!swapped) break;
-
-        swapped = false;
-        current = right;
-        while (current != left)
-        {
-            if (musicians[current->index].listenersCount < musicians[left->index].listenersCount)
-            {
-                std::swap(current->nickname, left->nickname);
-                std::swap(current->index, left->index);
-                swapped = true;
-            }
-            LineArray* prev = head;
-            while (prev->nextInputOrder != current)
-            {
-                prev = prev->nextInputOrder;
-            }
-            left = head;
-            current = prev;
-        }
+        current->nextNickName = *insertionPoint;
+        *insertionPoint = current;
+        current = next;
     }
+
+    return sorted;
+}
+
+// Функция для сортировки связного списка по количеству слушателей
+LineArray* SortListByListeners(LineArray* head) {
+    if (head == nullptr || head->nextInputOrder == nullptr) return head;
+
+    LineArray* sorted = nullptr;
+    LineArray* current = head;
+
+    while (current != nullptr) {
+        LineArray* next = current->nextInputOrder;
+        LineArray** insertionPoint = &sorted;
+
+        while (*insertionPoint != nullptr && compareListeners(current, *insertionPoint)) {
+            insertionPoint = &((*insertionPoint)->nextListeners);
+        }
+
+        current->nextListeners = *insertionPoint;
+        *insertionPoint = current;
+        current = next;
+    }
+    return sorted;
 }
 
 #pragma endregion
 
-// Функция для создания линейного списка
-LineArray* CreateList()
+#pragma region Создание и заполнение
+
+LineArray* CreateList() 
 {
     LineArray* head = nullptr;
     LineArray* tail = nullptr;
 
-    // Создание узлов и построение списка в порядке ввода
-    for (int i = 0; i < ARR_LEN; ++i)
+    for (int i = 0; i < ARR_LEN; ++i) 
     {
-        if (musicians[i].nickname != "nothing")
+        if ((musicians[i].nickname != "nothing") && (musicians[i].listenersCount != -1))
         {
-            LineArray* newNode = new LineArray(musicians[i].nickname, i);
-
-            if (!head)
+            LineArray* newNode = new LineArray(&musicians[i], i);
+            if (!head) 
             {
                 head = newNode;
                 tail = newNode;
             }
-
-            else
+            else 
             {
                 tail->nextInputOrder = newNode;
                 tail = newNode;
             }
         }
     }
-
-    if (!head) return nullptr; // Если список пуст
-
-    // Установка nextNickName и nextListeners порядком ввода (как nextInputOrder)
-    LineArray* current = head;
-    while (current)
-    {
-        current->nextNickName = current->nextInputOrder;
-        current->nextListeners = current->nextInputOrder;
-        current = current->nextInputOrder;
-    }
-
-    NicknameListSort(head);   // Сортировка основного списка
-    ListenersListSort(head);  // Сортировка основного списка
-
-    // После сортировок устанавливаем корректные связи для обхода
-    // после сортировки шейкерной сортировкой связи по nextInputOrder будут нарушены
-    LineArray* currentNick = head;
-    LineArray* currentListen = head;
-
-    while (currentNick)
-    {
-        currentNick = currentNick->nextNickName;
-    }
-    while (currentListen)
-    {
-        currentListen = currentListen->nextListeners;
-    }
     return head;
 }
 
-// Функция для печати списка в заданном порядке
 void PrintList(LineArray* head, std::string order) {
     LineArray* current = head;
 
-    std::cout << "Список псевдонимов (по " << order << "):" << std::endl;
+    std::cout << "Список исполнителей (по " << order << "):" << std::endl;
     SkipString();
 
-    while (current != nullptr)
+    while (current != nullptr) 
     {
-        int index = current->index;
-        std::cout << "  Исполнитель " << index + 1 << std::endl;
-        std::cout << "  Псевдоним исполнителя: " << musicians[index].nickname << std::endl;
-        std::cout << "  Настоящее имя исполнителя: " << musicians[index].realName << std::endl;
-        std::cout << "  Лейбл: " << musicians[index].label << std::endl;
-        std::cout << "  Количество слушателей: " << musicians[index].listenersCount << std::endl;
+        std::cout << "  Исполнитель " << current->index + 1 << std::endl;
+        std::cout << "  Псевдоним исполнителя: " << current->musician->nickname << std::endl;
+        std::cout << "  Настоящее имя исполнителя: " << current->musician->realName << std::endl;
+        std::cout << "  Лейбл: " << current->musician->label << std::endl;
+        std::cout << "  Количество слушателей: " << current->musician->listenersCount << std::endl;
+        SkipString();
 
-        if (order == "ввода")
+        if (order == "порядке ввода") 
         {
             current = current->nextInputOrder;
         }
 
-        else if (order == "псевдонимам")
+        else if (order == "увеличению псевдонима") 
         {
             current = current->nextNickName;
         }
 
-        else if (order == "количеству слушателей")
+        else if (order == "увеличению количества слушателей") 
         {
             current = current->nextListeners;
         }
-
-        SkipString();
+        else 
+        {
+            std::cout << "Неизвестный порядок вывода." << std::endl;
+            return;
+        }
     }
 
     PrintLine();
 }
+#pragma endregion
 
 #pragma endregion
 
@@ -1752,10 +1687,19 @@ int main()
 
 #pragma region Задание 3
     
-    LineArray* head = CreateList();
-    PrintList(head, "ввода");
-    PrintList(head, "псевдонимам");
-    PrintList(head, "количеству слушателей");
+    // Создаем список в порядке ввода
+    LineArray* headInputOrder = CreateList();
+
+    // Сортируем список по псевдониму
+    LineArray* headNickname = SortListByNickname(headInputOrder);
+
+    // Сортируем список по количеству слушателей
+    LineArray* headListeners = SortListByListeners(headInputOrder);
+
+    // Выводим списки
+    PrintList(headInputOrder, "порядке ввода");
+    PrintList(headNickname, "увеличению псевдонима");
+    PrintList(headListeners, "увеличению количества слушателей");
 
 #pragma endregion
 
