@@ -33,45 +33,71 @@ struct Musician
 
 Musician musicians[ARR_LEN];
 
-//функция для создания элемента структуры Musician
-void GetMusicianInformation(int serNumber)
+// Проверка существования псевдонима в массиве
+bool IsNicknameExists(const std::string& nickname, int currentPos)
 {
-    std::string count; //переменная для считывания и проверки кол-ва слушателей
+    for (int i = 0; i < currentPos; ++i)
+    {
+        if (musicians[i].nickname == nickname)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Функция для создания элемента структуры Musician
+void GetMusicianInformation(int serialNumber)
+{
+    std::string count; // переменная для считывания и проверки количества слушателей
     bool isConverted = false;
 
-    std::cout << "Начинаем ввод информации об артисте " << serNumber + 1 << std::endl;
-    std::cout << "Введите псевдоним артиста: ";
-    std::cin >> musicians[serNumber].nickname;
+    std::cout << "Начинаем ввод информации об артисте " << serialNumber + 1 << std::endl;
 
+    // Ввод псевдонима с проверкой на уникальность
+    while (true)
+    {
+        std::cout << "Введите псевдоним артиста: ";
+        std::cin >> musicians[serialNumber].nickname;
+
+        if (!IsNicknameExists(musicians[serialNumber].nickname, serialNumber))
+        {
+            break; // Если псевдоним уникален, выходим из цикла
+        }
+        else
+        {
+            std::cout << "Ошибка: Артист с таким псевдонимом уже существует. Пожалуйста, введите другой псевдоним." << std::endl;
+        }
+    }
+
+    // Ввод остальных данных
     std::cout << "Введите настоящее имя артиста: ";
-    std::cin >> musicians[serNumber].realName;
+    std::cin >> musicians[serialNumber].realName;
 
     std::cout << "Введите лейбл артиста: ";
-    std::cin >> musicians[serNumber].label;
+    std::cin >> musicians[serialNumber].label;
 
+    // Ввод количества слушателей с проверкой корректности
     while (!isConverted)
     {
         std::cout << "Введите количество слушателей в месяц у артиста: ";
         std::cin >> count;
-
         try
         {
             size_t pos;
-            musicians[serNumber].listenersCount = stoul(count, &pos);
+            musicians[serialNumber].listenersCount = stoul(count, &pos);
             if (pos == count.length())
                 isConverted = true;
             else
                 std::cout << "Количество слушателей за месяц должно быть целым беззнаковым числом" << std::endl;
         }
-
         catch (std::invalid_argument)
         {
             std::cout << "Количество слушателей за месяц должно быть числом" << std::endl;
         }
-
         catch (std::out_of_range)
         {
-            std::cout << "Количество слушателей за месяц должно быть неотрицательным и не превышающим 140697553867517" << std::endl; // 140697553867517 - граница типа uint64_t
+            std::cout << "Количество слушателей за месяц должно быть неотрицательным и не превышающим 140697553867517" << std::endl; // Граница типа uint64_t
         }
     }
 }
@@ -1469,106 +1495,117 @@ LineList* headListeners;
 
 #pragma region Создание списков
 
-void AddToHead(LineList*& head, LineList* elem) 
+void AddToHead(LineList*& head, LineList* elem)
 {
-    if (!head) 
+    if (!head)
     {
         head = elem;
         return;
     }
     LineList* curr = head;
-
-    while (!curr->next) 
+    while (curr->next) // Проверяем, пока следующий элемент существует
     {
         curr = curr->next;
     }
     curr->next = elem;
 }
 
-void AddToHeadName(LineList*& head, LineList* elem) 
+void AddToHeadName(LineList*& head, LineList* elem)
 {
-    if (head == nullptr) 
-    {
-        head = elem; 
-        return;
-   }
-
-    LineList* curr = head;
-    LineList* prev = nullptr;
-    while (curr) //curr != nullptr
-    {
-        if (curr->musician->nickname > elem->musician->nickname) 
-        {
-            if (prev) 
-            {
-                prev->nextName = elem;
-                elem->nextName = curr;
-                return;
-            }
-            elem->nextName = curr;
-            head = elem;
-            return;
-        }
-        prev = curr;
-        curr = curr->next;
-    }
-    prev->nextName = elem;
-
-}
-
-void AddToHeadListeners(LineList*& head, LineList* elem)
-{
-    if (head == nullptr)
+    if (!head)
     {
         head = elem;
         return;
     }
-
     LineList* curr = head;
     LineList* prev = nullptr;
-    while (curr) //curr != nullptr
+    while (curr && curr->musician->nickname <= elem->musician->nickname)
     {
-        if (curr->musician->listenersCount > elem->musician->listenersCount)
-        {
-            if (prev)
-            {
-                prev->nextListeners = elem;
-                elem->nextListeners = curr;
-                return;
-            }
-            elem->nextListeners = curr;
-            head = elem;
-            return;
-        }
         prev = curr;
-        curr = curr->next;
+        curr = curr->nextName;
     }
-    prev->nextListeners = elem;
-
+    if (prev)
+    {
+        prev->nextName = elem;
+    }
+    else
+    {
+        head = elem; // Если элемент становится новым головным
+    }
+    elem->nextName = curr;
 }
 
-Musician* GetNewMusician() 
+void AddToHeadListeners(LineList*& head, LineList* elem)
+{
+    if (!head)
+    {
+        head = elem;
+        return;
+    }
+    LineList* curr = head;
+    LineList* prev = nullptr;
+    while (curr && curr->musician->listenersCount >= elem->musician->listenersCount)
+    {
+        prev = curr;
+        curr = curr->nextListeners;
+    }
+    if (prev)
+    {
+        prev->nextListeners = elem;
+    }
+    else
+    {
+        head = elem; // Если элемент становится новым головным
+    }
+    elem->nextListeners = curr;
+}
+
+bool IsNicknameUnique(LineList* head, const std::string& nickname)
+{
+    LineList* curr = head;
+    while (curr)
+    {
+        if (curr->musician->nickname == nickname)
+
+        {
+            return false; // Никнейм уже существует
+        }
+        curr = curr->next;
+    }
+    return true; // Никнейм уникален
+}
+
+Musician* GetNewMusician(LineList* head) 
 {
     std::string nickname, realName, label;
-    std::string count; //переменная для считывания и проверки кол-ва слушателей
+    std::string count; // переменная для считывания и проверки количества слушателей
     uint64_t number;
     bool isConverted = false;
 
-    std::cout << "Введите псевдоним артиста: ";
-    std::cin >> nickname;
+    while (true) 
+    {
+        std::cout << "Введите псевдоним артиста: ";
+        std::cin >> nickname;
+
+        // Проверяем уникальность nickname
+        if (!IsNicknameUnique(head, nickname)) 
+        {
+            std::cout << "Музыкант с таким псевдонимом уже существует. Введите другой псевдоним." << std::endl;
+            continue; // Запрашиваем ввод снова
+        }
+        break; // Если nickname уникален, выходим из цикла
+    }
 
     std::cout << "Введите настоящее имя артиста: ";
     std::cin >> realName;
-
     std::cout << "Введите лейбл артиста: ";
     std::cin >> label;
 
-    while (!isConverted)
+    while (!isConverted) 
     {
         std::cout << "Введите количество слушателей в месяц у артиста: ";
         std::cin >> count;
-
-        try
+        try 
         {
             size_t pos;
             number = stoul(count, &pos);
@@ -1578,14 +1615,14 @@ Musician* GetNewMusician()
                 std::cout << "Количество слушателей за месяц должно быть целым беззнаковым числом" << std::endl;
         }
 
-        catch (std::invalid_argument)
+        catch (std::invalid_argument) 
         {
             std::cout << "Количество слушателей за месяц должно быть числом" << std::endl;
         }
 
-        catch (std::out_of_range)
+        catch (std::out_of_range) 
         {
-            std::cout << "Количество слушателей за месяц должно быть неотрицательным и не превышающим 140697553867517" << std::endl; // 140697553867517 - граница типа uint64_t
+            std::cout << "Количество слушателей за месяц должно быть неотрицательным и не превышающим 140697553867517" << std::endl; // граница типа uint64_t
         }
     }
 
@@ -1595,20 +1632,25 @@ Musician* GetNewMusician()
 void CreateList() 
 {
     std::string answer;
-    do 
-    {
+
+    do {
         SkipString();
         std::cout << "Хотите ли вы ввести элемент?(+/-): ";
         std::cin >> answer;
+
         if (answer == "+") 
         {
             SkipString();
-            Musician* musician = GetNewMusician();
+
+            // Вызываем GetNewMusician, передавая голову списка для проверки уникальности nickname
+            Musician* musician = GetNewMusician(head);
+
             LineList* element = new LineList(musician);
             AddToHead(head, element);
             AddToHeadListeners(headListeners, element);
             AddToHeadName(headName, element);
         }
+
     } while (answer == "+");
 
     PrintLine();
@@ -1624,7 +1666,7 @@ void PrintList(LineList* head)
     int i = 1;
     while (curr) 
     {
-        std::cout << std::endl;
+        SkipString();
         std::cout << "Элемент " << i++ << std::endl;
         std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
         std::cout << "Настоящее имя исполнителя: " << curr->musician->realName << std::endl;
@@ -1798,6 +1840,256 @@ void PerformListenersSearch()
 
 #pragma endregion
 
+#pragma region Удаление
+
+void RemoveByNickname() 
+{
+    std::string nicknameToRemove;
+
+    while (true) 
+    {
+        SkipString();
+        std::cout << "Введите псевдоним музыканта для удаления (или '-' для выхода): ";
+        std::cin >> nicknameToRemove;
+
+        if (nicknameToRemove == "-") 
+        {
+            if (head == nullptr) 
+            {
+                std::cout << "Список уже пуст" << std::endl;
+            }
+            break;
+        }
+
+        if (head == nullptr) 
+        {
+            std::cout << "Вы удалили все элементы из списка" << std::endl;
+            break;
+        }
+
+        LineList* prev = nullptr;
+        LineList* curr = head;
+
+        // Поиск элемента по nickname
+        while (curr && curr->musician->nickname != nicknameToRemove) 
+        {
+            prev = curr;
+            curr = curr->next;
+        }
+
+        if (curr) 
+        {
+            // Удаление элемента из основного списка
+            if (prev) 
+            {
+                prev->next = curr->next;
+            }
+
+            else 
+            {
+                head = curr->next;
+            }
+
+            // Удаление элемента из сортированного списка по nickname
+            LineList* prevName = nullptr;
+            LineList* currName = headName;
+            while (currName && currName != curr) 
+            {
+                prevName = currName;
+                currName = currName->nextName;
+            }
+
+            if (prevName) 
+            {
+                prevName->nextName = currName ? currName->nextName : nullptr;
+            }
+
+            else 
+            {
+                headName = currName ? currName->nextName : nullptr;
+            }
+
+            // Удаление элемента из сортированного списка по listenersCount
+
+            LineList* prevListeners = nullptr;
+            LineList* currListeners = headListeners;
+            while (currListeners && currListeners != curr) 
+            {
+                prevListeners = currListeners;
+                currListeners = currListeners->nextListeners;
+            }
+
+            if (prevListeners) 
+            {
+                prevListeners->nextListeners = currListeners ? currListeners->nextListeners : nullptr;
+            }
+
+            else 
+            {
+                headListeners = currListeners ? currListeners->nextListeners : nullptr;
+            }
+
+            delete curr->musician;
+            delete curr;
+
+            SkipString();
+            std::cout << "Полученный массив: ";
+            PrintList(head);
+            
+
+            if (head == nullptr) 
+            {
+                std::cout << "Список стал пустым" << std::endl;
+                break;
+            }
+            PrintLine();
+        }
+
+        else 
+        {
+            std::cout << "Элемент с псевдонимом '" << nicknameToRemove << "' не найден" << std::endl;
+        }
+    }
+}
+
+void RemoveByListenersCount() 
+{
+    std::string countInput;
+
+    SkipString();
+    while (true) 
+    {
+        std::cout << "Введите количество слушателей для удаления (или '-' для выхода): ";
+        std::cin >> countInput;
+
+        if (countInput == "-") 
+        {
+            if (head == nullptr) 
+            {
+                std::cout << "Список уже пуст" << std::endl;
+            }
+            break;
+        }
+
+        if (head == nullptr) 
+        {
+            std::cout << "Вы удалили все элементы" << std::endl;
+            break;
+        }
+
+        uint64_t listenersCountToRemove = 0;
+
+        try 
+        {
+            size_t pos;
+            listenersCountToRemove = stoul(countInput, &pos);
+            if (pos != countInput.length()) 
+            {
+                std::cout << "Некорректный ввод. Введите целое число." << std::endl;
+                continue;
+            }
+        }
+
+        catch (std::invalid_argument& e) 
+        {
+            std::cout << "Некорректный ввод. Введите целое число." << std::endl;
+            continue;
+        }
+
+        catch (std::out_of_range& e) 
+        {
+            std::cout << "Число слишком большое. Попробуйте снова." << std::endl;
+            continue;
+        }
+
+        LineList* prev = nullptr;
+        LineList* curr = head;
+
+        // Поиск элемента по listenersCount
+        while (curr && curr->musician->listenersCount != listenersCountToRemove) 
+        {
+            prev = curr;
+            curr = curr->next;
+        }
+
+        if (curr) 
+        {
+            // Удаление элемента из основного списка
+            if (prev) 
+            {
+                prev->next = curr->next;
+            }
+            else 
+            {
+                head = curr->next;
+            }
+
+            // Удаление элемента из сортированного списка по nickname
+            LineList* prevName = nullptr;
+            LineList* currName = headName;
+            while (currName && currName != curr) 
+            {
+                prevName = currName;
+                currName = currName->nextName;
+            }
+
+            if (prevName) 
+            {
+                prevName->nextName = currName ? currName->nextName : nullptr;
+            }
+            else 
+            {
+                headName = currName ? currName->nextName : nullptr;
+            }
+
+            // Удаление элемента из сортированного списка по listenersCount
+            LineList* prevListeners = nullptr;
+            LineList* currListeners = headListeners;
+
+            while (currListeners && currListeners != curr) 
+            {
+                prevListeners = currListeners;
+                currListeners = currListeners->nextListeners;
+            }
+
+            if (prevListeners) 
+            {
+                prevListeners->nextListeners = currListeners ? currListeners->nextListeners : nullptr;
+            }
+
+            else 
+            {
+                headListeners = currListeners ? currListeners->nextListeners : nullptr;
+            }
+
+            delete curr->musician;
+            delete curr;
+
+            SkipString();
+            std::cout << "Полученный массив: " << std::endl;
+            PrintList(head);
+            
+
+            if (head == nullptr) 
+            {
+                std::cout << "Список стал пустым" << std::endl;
+                break;
+            }
+
+            PrintLine();
+        }
+
+
+        else 
+        {
+            std::cout << "Элемент с количеством слушателей '" << listenersCountToRemove << "' не найден" << std::endl;
+        }
+    }
+}
+
+#pragma endregion
+
+
 #pragma endregion
 
 int main()
@@ -1863,13 +2155,15 @@ int main()
 
 #pragma endregion
 
-
 #pragma region Задание 3
 
     CreateList();
-    PerformNicknameSearch();
-    PerformListenersSearch();
+    /*PerformNicknameSearch();
+    PerformListenersSearch();*/
 
+    RemoveByNickname();
+    PrintLine();
+    RemoveByListenersCount();
 #pragma endregion
 
 }
