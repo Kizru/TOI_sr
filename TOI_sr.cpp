@@ -1084,7 +1084,8 @@ void RemoveMusicianByNickname(const std::string& nicknameToRemove, NickNameBenTr
     int indexToRemove = -1;
 
     // Ищем индекс музыканта по псевдониму
-    for (int i = 0; i < ARR_LEN; ++i) {
+    for (int i = 0; i < ARR_LEN; ++i) 
+    {
         if (musicians[i].nickname == nicknameToRemove)
         {
             indexToRemove = i;
@@ -1256,13 +1257,13 @@ void printListenersTreeTable(ListenersBenTreeNode* root)
 #pragma region Итерационный бинарный поиск
 
 // Итерационная версия бинарного поиска по дереву
-void iterativeBinarySearch(ListenersBenTreeNode* node, const uint64_t& searchNickname) 
+void iterativeBinarySearch(ListenersBenTreeNode* node, const uint64_t& searchListeners)
 {
     ListenersBenTreeNode* current = node;
 
     while (current != nullptr) 
     {
-        if (searchNickname == current->listeners) 
+        if (searchListeners == current->listeners) 
         {
             int index = current->index;
             SkipString();
@@ -1274,7 +1275,7 @@ void iterativeBinarySearch(ListenersBenTreeNode* node, const uint64_t& searchNic
             return; // Элемент найден, выходим из функции
         }
 
-        else if (searchNickname < current->listeners) 
+        else if (searchListeners < current->listeners)
         {
             current = current->left; // Переходим в левое поддерево
         }
@@ -1286,7 +1287,7 @@ void iterativeBinarySearch(ListenersBenTreeNode* node, const uint64_t& searchNic
     }
 
     // Если цикл завершился и элемент не найден
-    std::cout << "Музыкант с количеством слушателей " << searchNickname << " не найден" << std::endl;
+    std::cout << "Музыкант с количеством слушателей " << searchListeners << " не найден" << std::endl;
 }
 
 // Функция для выполнения поиска в цикле
@@ -1347,7 +1348,8 @@ void RemoveMusicianByListeners(const uint64_t& listenersToRemove, ListenersBenTr
     int indexToRemove = -1;
 
     // Ищем индекс музыканта по псевдониму
-    for (int i = 0; i < ARR_LEN; ++i) {
+    for (int i = 0; i < ARR_LEN; ++i) 
+    {
         if (musicians[i].listenersCount == listenersToRemove)
         {
             indexToRemove = i;
@@ -1467,13 +1469,17 @@ LineList* headListeners;
 
 #pragma region Создание списков
 
-void AddToHead(LineList*& head, LineList* elem) {
-    if (!head) {
+void AddToHead(LineList*& head, LineList* elem) 
+{
+    if (!head) 
+    {
         head = elem;
         return;
     }
     LineList* curr = head;
-    while (!curr->next) {
+
+    while (!curr->next) 
+    {
         curr = curr->next;
     }
     curr->next = elem;
@@ -1483,7 +1489,7 @@ void AddToHeadName(LineList*& head, LineList* elem)
 {
     if (head == nullptr) 
     {
-        head = elem;
+        head = elem; 
         return;
    }
 
@@ -1541,8 +1547,9 @@ void AddToHeadListeners(LineList*& head, LineList* elem)
 
 }
 
-Musician* GetNewMusician() {
-    std::string nickname, realName, label, count;
+Musician* GetNewMusician() 
+{
+    std::string nickname, realName, label;
     std::string count; //переменная для считывания и проверки кол-ва слушателей
     uint64_t number;
     bool isConverted = false;
@@ -1590,10 +1597,12 @@ void CreateList()
     std::string answer;
     do 
     {
-        std::cout << "Хотите ли вы ввести элемент?(+/-)";
+        SkipString();
+        std::cout << "Хотите ли вы ввести элемент?(+/-): ";
         std::cin >> answer;
         if (answer == "+") 
         {
+            SkipString();
             Musician* musician = GetNewMusician();
             LineList* element = new LineList(musician);
             AddToHead(head, element);
@@ -1602,16 +1611,19 @@ void CreateList()
         }
     } while (answer == "+");
 
+    PrintLine();
 }
 
 #pragma endregion
 
 #pragma region Просмотр
 
-void PrintList(LineList* head) {
+void PrintList(LineList* head) 
+{
     LineList* curr = head;
     int i = 1;
-    while (curr) {
+    while (curr) 
+    {
         std::cout << std::endl;
         std::cout << "Элемент " << i++ << std::endl;
         std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
@@ -1622,10 +1634,12 @@ void PrintList(LineList* head) {
     }
 }
 
-void PrintListInNickOrder(LineList* head) {
+void PrintListInNickOrder(LineList* head) 
+{
     LineList* curr = head;
     int i = 1;
-    while (curr) {
+    while (curr) 
+    {
         std::cout << std::endl;
         std::cout << "Элемент " << i++ << std::endl;
         std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
@@ -1636,10 +1650,12 @@ void PrintListInNickOrder(LineList* head) {
     }
 }
 
-void PrintListInListenersOrder(LineList* head) {
+void PrintListInListenersOrder(LineList* head) 
+{
     LineList* curr = head;
     int i = 1;
-    while (curr) {
+    while (curr) 
+    {
         std::cout << std::endl;
         std::cout << "Элемент " << i++ << std::endl;
         std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
@@ -1650,460 +1666,144 @@ void PrintListInListenersOrder(LineList* head) {
     }
 }
 
+// Функция для вывода информации о музыканте
+void PrintMusicianInfo(Musician* musician) 
+{
+    if (musician) 
+    {
+        std::cout << "Псевдоним: " << musician->nickname << std::endl;
+        std::cout << "Настоящее имя: " << musician->realName << std::endl;
+        std::cout << "Лейбл: " << musician->label << std::endl;
+        std::cout << "Количество слушателей: " << musician->listenersCount << std::endl;
+    }
+    else 
+    {
+        std::cout << "Музыкант не найден" << std::endl;
+    }
+}
+
 #pragma endregion
 
+#pragma region Поиск
 
-//#pragma region Сортировки
-//
+// Функция поиска по псевдониму (рекурсивный)
+LineList* SearchByNickname(LineList* current, const std::string& nickname) 
+{
+    if (!current) 
+    {
+        return nullptr;
+    }
 
-//
-//// Функция сравнения для сортировки по количеству слушателей
-//bool compareListeners(LineList* a, LineList* b) {
-//    return a->musician->listenersCount > b->musician->listenersCount;
-//}
-//
-//LineList* SortListByNickname(LineList* head)
-//{
-//    if (head == nullptr) return nullptr;
-//
-//    LineList* sorted = nullptr;
-//    LineList* current = head;
-//
-//    while (current != nullptr)
-//    {
-//        LineList* next = current->nextInputOrder;
-//        LineList** insertionPoint = &sorted;
-//
-//        while (*insertionPoint != nullptr && compareNicknames(current, *insertionPoint))
-//        {
-//            insertionPoint = &((*insertionPoint)->nextNickName);
-//        }
-//
-//        LineList* newNode = new LineList(*current);
-//        newNode->nextNickName = *insertionPoint;
-//        *insertionPoint = newNode;
-//        current = next;
-//    }
-//    return sorted;
-//}
-//
-//LineList* SortListByListeners(LineList* head)
-//{
-//    if (head == nullptr) return nullptr;
-//
-//    LineList* sorted = nullptr;
-//    LineList* current = head;
-//
-//    while (current != nullptr)
-//    {
-//        LineList* next = current->nextInputOrder;
-//        LineList** insertionPoint = &sorted;
-//
-//        while (*insertionPoint != nullptr && compareListeners(current, *insertionPoint))
-//        {
-//            insertionPoint = &((*insertionPoint)->nextListeners);
-//        }
-//
-//        LineList* newNode = new LineList(*current);
-//        newNode->nextListeners = *insertionPoint;
-//        *insertionPoint = newNode;
-//        current = next;
-//    }
-//
-//    return sorted;
-//}
-//
-//#pragma endregion
-//
-//#pragma region Создание и заполнение
-//
-//LineList* CreateList()
-//{
-//    LineList* head = nullptr;
-//    LineList* tail = nullptr;
-//
-//    for (int i = 0; i < current_ARR_LEN; ++i) 
-//    {
-//        // Проверка на "удаленные" элементы
-//        if (musicians[i].nickname != "nothing" && musicians[i].listenersCount != -1)
-//        {
-//            LineList* newNode = new LineList(&musicians[i], i);
-//            if (!head)
-//            {
-//                head = newNode;
-//                tail = newNode;
-//            }
-//
-//            else
-//            {
-//                tail->nextInputOrder = newNode;
-//                tail = newNode;
-//            }
-//        }
-//    }
-//    return head;
-//}
-//
-//void PrintList(LineList* head, std::string order) {
-//    LineList* current = head;
-//
-//    std::cout << "Список исполнителей (по " << order << "):" << std::endl;
-//    SkipString();
-//
-//    while (current != nullptr)
-//    {
-//        std::cout << "  Псевдоним исполнителя: " << current->musician->nickname << std::endl;
-//        std::cout << "  Настоящее имя исполнителя: " << current->musician->realName << std::endl;
-//        std::cout << "  Лейбл: " << current->musician->label << std::endl;
-//        std::cout << "  Количество слушателей: " << current->musician->listenersCount << std::endl;
-//        SkipString();
-//
-//        if (order == "порядке ввода")
-//        {
-//            current = current->nextInputOrder;
-//        }
-//
-//        else if (order == "увеличению псевдонима")
-//        {
-//            current = current->nextNickName;
-//        }
-//
-//        else if (order == "увеличению количества слушателей")
-//        {
-//            current = current->nextListeners;
-//        }
-//        else
-//        {
-//            std::cout << "Неизвестный порядок вывода." << std::endl;
-//            return;
-//        }
-//    }
-//
-//    PrintLine();
-//}
-//#pragma endregion
-//
-//#pragma region Поиск и удаление
-//
-//#pragma region Поиск(2 способа)
-//
-//void PrintMusician(Musician* musician, int index)
-//{
-//
-//    SkipString();
-//    std::cout << "Найденный исполнитель: " << std::endl;
-//    std::cout << "Псевдоним: " << musician->nickname << std::endl;
-//    std::cout << "Настоящее имя: " << musician->realName << std::endl;
-//    std::cout << "Лейбл: " << musician->label << std::endl;
-//    std::cout << "Количество слушателей: " << musician->listenersCount << std::endl;
-//    PrintLine();
-//}
-//
-//// Функция поиска по псевдониму (рекурсивная)
-//void SearchByNicknameRecursive(LineList* head, const std::string& searchNickname, bool& found)
-//{
-//    if (head == nullptr)
-//    {
-//        if (!found)
-//        {
-//            std::cout << "Исполнитель с псевдонимом " << searchNickname << " не найден" << std::endl;
-//        }
-//        return;
-//    }
-//
-//    if (head->musician->nickname == searchNickname)
-//    {
-//        PrintMusician(head->musician, head->index);
-//        found = true;
-//    }
-//
-//    if (head->nextNickName != nullptr)
-//        SearchByNicknameRecursive(head->nextNickName, searchNickname, found);
-//    else
-//    {
-//        if (!found)
-//        {
-//            std::cout << "Исполнитель с псевдонимом '" << searchNickname << "' не найден" << std::endl;
-//        }
-//        return;
-//    }
-//}
-//
-//// Функция поиска по количеству слушателей (итерационная)
-//void SearchByListenersIterative(LineList* head, int searchListeners)
-//{
-//    bool found = false;
-//    LineList* current = head;
-//
-//    while (current != nullptr)
-//    {
-//        if (current->musician->listenersCount == searchListeners)
-//        {
-//            PrintMusician(current->musician, current->index);
-//            found = true;
-//        }
-//        current = current->nextListeners; // Предполагается, что список отсортирован по слушателям
-//    }
-//
-//    if (!found) {
-//        std::cout << "Исполнитель с количеством слушателей " << searchListeners << " не найден" << std::endl;
-//    }
-//}
-//
-//// Отдельная функция для выполнения поиска на основе ввода пользователя
-//void PerformSearch(LineList* headNickname, LineList* headListeners) 
-//{
-//    std::string searchChoice;
-//    while (true) 
-//    {
-//        std::cout << "Желаете выполнить поиск исполнителя? (+/-): ";
-//        std::cin >> searchChoice;
-//
-//        if (searchChoice == "-") 
-//        {
-//            break;
-//        }
-//
-//        else if (searchChoice == "+") 
-//        {
-//            std::string searchType;
-//            std::cout << "По какому ключу желаете искать (n/l)? ";
-//            std::cin >> searchType;
-//
-//            if (searchType == "n") 
-//            {
-//                std::string nickname;
-//                std::cout << "Введите псевдоним для поиска: ";
-//                std::cin >> nickname;
-//                bool nicknameFound = false;
-//                SearchByNicknameRecursive(headNickname, nickname, nicknameFound);
-//            }
-//
-//            else if (searchType == "l") 
-//            {
-//                int listeners;
-//                std::cout << "Введите количество слушателей для поиска: ";
-//                std::cin >> listeners;
-//
-//                // Проверка ввода (для избежания исключений)
-//                if (std::cin.fail()) {
-//                    std::cout << "Ошибка, введено некорректное значение для количества слушателей." << std::endl;
-//                    std::cin.clear(); // Сбрасываем флаг ошибки
-//                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Очищаем буфер ввода
-//                    continue; // Переходим к следующей итерации цикла
-//                }
-//                SearchByListenersIterative(headListeners, listeners);
-//            }
-//
-//            else 
-//            {
-//                std::cout << "Некорректный тип поиска." << std::endl;
-//            }
-//        }
-//        else 
-//        {
-//            std::cout << "Некорректный ввод, введите + или -" << std::endl;
-//        }
-//        std::cout << std::endl;
-//    }
-//}
-//
-//#pragma endregion
-//
-//#pragma region Удаление
-//
-//bool IsArrayEmpty(int current_ARR_LEN) 
-//{
-//    for (int i = 0; i < current_ARR_LEN; ++i) 
-//    {
-//        if (musicians[i].nickname != "nothing" && musicians[i].listenersCount != -1) 
-//        {
-//            return false; // Найден хотя бы один не "удаленный" элемент
-//        }
-//    }
-//    return true; // Все элементы "удалены"
-//}
-//
-//void PerformDeletion(int& current_ARR_LEN) {
-//    std::string deleteChoice;
-//    while (true) 
-//    {
-//        std::cout << "Желаете удалить исполнителя? (+/-): ";
-//        std::cin >> deleteChoice;
-//
-//        if (deleteChoice == "-") 
-//        {
-//            break;
-//        }
-//
-//        else if (deleteChoice == "+") 
-//        {
-//            std::string deleteType;
-//            std::cout << "По какому ключу желаете удалить (n/l)? ";
-//            std::cin >> deleteType;
-//
-//            if (deleteType == "n") 
-//            {
-//                std::string nickname;
-//                std::cout << "Введите псевдоним исполнителя для удаления: ";
-//                std::cin >> nickname;
-//
-//                bool found = false;
-//
-//                for (int i = 0; i < current_ARR_LEN; ++i) 
-//                {
-//                    if (musicians[i].nickname == nickname) 
-//                    {
-//                        musicians[i].nickname = "nothing";
-//                        found = true;
-//
-//                        // Вывод текущего состояния массива
-//                        SkipString();
-//
-//                        // Создание и вывод линейных списков после удаления
-//                        LineList* headInputOrder = CreateList();
-//                        PrintList(headInputOrder, "порядке ввода");
-//
-//                        LineList* headNickname = SortListByNickname(headInputOrder); // Сортировка и удаление старого списка
-//                        PrintList(headNickname, "увеличению псевдонима");
-//
-//                        LineList* headListeners = SortListByListeners(CreateList());
-//                        PrintList(headListeners, "увеличению количества слушателей");
-//
-//                        break;
-//                    }
-//                }
-//
-//                if (!found) 
-//                {
-//                    std::cout << "Исполнитель с псевдонимом " << nickname << " не найден." << std::endl;
-//                }
-//
-//            }
-//
-//            else if (deleteType == "l") 
-//            {
-//                int listeners;
-//                std::cout << "Введите количество слушателей исполнителя для удаления: ";
-//                std::cin >> listeners;
-//
-//                if (std::cin.fail()) 
-//                {
-//                    std::cout << "Ошибка, введено некорректное значение для количества слушателей." << std::endl;
-//                    std::cin.clear();
-//                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-//                    continue;
-//                }
-//
-//                bool found = false;
-//                for (int i = 0; i < current_ARR_LEN; ++i) 
-//                {
-//                    if (musicians[i].listenersCount == listeners) 
-//                    {
-//                        musicians[i].listenersCount = -1;
-//                        std::cout << "Исполнитель с количеством слушателей " << listeners << " удален" << std::endl;
-//                        found = true;
-//
-//                        // Создание и вывод линейных списков после удаления
-//                        LineList* headInputOrder = CreateList();
-//                        std::cout << "Список в порядке ввода после удаления:" << std::endl;
-//                        PrintList(headInputOrder, "порядке ввода");
-//
-//                        LineList* headNickname = SortListByNickname(headInputOrder); // Сортировка и удаление старого списка
-//                        std::cout << "Список по псевдониму после удаления:" << std::endl;
-//                        PrintList(headNickname, "увеличению псевдонима");
-//
-//                        LineList* headListeners = SortListByListeners(CreateList());
-//                        std::cout << "Список по слушателям после удаления:" << std::endl;
-//                        PrintList(headListeners, "увеличению количества слушателей");
-//
-//                        break;
-//                    }
-//                }
-//                if (!found) 
-//                {
-//                    std::cout << "Исполнитель с количеством слушателей '" << listeners << "' не найден." << std::endl;
-//                }
-//
-//            }
-//
-//            else 
-//            {
-//                std::cout << "Некорректный тип удаления." << std::endl;
-//            }
-//
-//            // Проверка, не удалены ли все элементы
-//            if (IsArrayEmpty(current_ARR_LEN)) 
-//            {
-//                std::cout << "Все исполнители удалены" << std::endl;
-//                break;
-//            }
-//        }
-//
-//        else 
-//        {
-//            std::cout << "Некорректный ввод. Пожалуйста, введите + или -" << std::endl;
-//        }
-//
-//        SkipString();
-//    }
-//}
-//
-//#pragma endregion
-//
-//#pragma region Выбор действия
-//
-//void PerformOperations(int& current_ARR_LEN, LineList* headNickname, LineList* headListeners)
-//{
-//    std::string choice;
-//
-//    while (true)
-//    {
-//        if (IsArrayEmpty(current_ARR_LEN)) 
-//        {
-//            std::cout << "Завершение работы" << std::endl;
-//            break; // Выход из PerformOperations, если все элементы удалены
-//        }
-//
-//        std::cout << "Что вы хотите сделать? (s/d/f): ";
-//        std::cin >> choice;
-//
-//        if (choice == "s")
-//        {
-//            PerformSearch(headNickname, headListeners);
-//        }
-//
-//        else if (choice == "d")
-//
-//        {
-//            PerformDeletion(current_ARR_LEN);
-//        }
-//
-//        else if (choice == "f")
-//
-//        {
-//            std::cout << "Завершение работы" << std::endl;
-//            break;
-//        }
-//
-//        else
-//        {
-//            std::cout << "Некорректный ввод, введите 's', 'd' или 'f'." << std::endl;
-//        }
-//        std::cout << std::endl;
-//    }
-//}
-//
-//#pragma endregion
-//
-//#pragma endregion
+    if (current->musician->nickname == nickname) 
+    {
+        return current;
+    }
+
+    return SearchByNickname(current->nextName, nickname);
+}
+
+// Функция поиска по количеству слушателей (итеративный)
+LineList* SearchByListeners(LineList* head, uint64_t listeners) 
+{
+    LineList* current = head;
+    while (current) 
+    {
+        if (current->musician->listenersCount == listeners) 
+        {
+            return current;
+        }
+        current = current->nextListeners;
+    }
+    return nullptr;
+}
+
+// Функция для выполнения поиска по псевдониму в цикле
+void PerformNicknameSearch() 
+{
+    std::string searchNickname;
+    while (true) 
+    {
+        std::cout << "Введите псевдоним для поиска (или '-' для выхода): ";
+        std::cin >> searchNickname;
+
+        if (searchNickname == "-") 
+        {
+            PrintLine();
+            break;
+        }
+
+        LineList* found = SearchByNickname(headName, searchNickname);
+
+        if (found) 
+        {
+            SkipString();
+            PrintMusicianInfo(found->musician);
+            SkipString();
+        }
+        else 
+        {
+            SkipString();
+            std::cout << "Музыкант с псевдонимом '" << searchNickname << "' не найден" << std::endl;
+            SkipString();
+        }
+    }
+}
+
+// Функция для выполнения поиска по количеству слушателей в цикле
+void PerformListenersSearch() 
+{
+    std::string searchListenersStr;
+    while (true) 
+    {
+        SkipString();
+        std::cout << "Введите количество слушателей для поиска (или '-' для выхода): ";
+        std::cin >> searchListenersStr; 
+
+
+        if (searchListenersStr == "-") 
+        {
+            PrintLine();
+            break;
+        }
+
+        try 
+        {
+            uint64_t searchListeners = std::stoul(searchListenersStr);
+            LineList* found = SearchByListeners(headListeners, searchListeners);
+            
+            if (found) 
+            {
+                SkipString();
+                PrintMusicianInfo(found->musician);
+                SkipString();
+            }
+            else 
+            {
+                SkipString();
+                std::cout << "Музыкант с количеством слушателей '" << searchListeners << "' не найден" << std::endl;
+                SkipString();
+            }
+        }
+        catch (const std::invalid_argument& e) 
+        {
+            std::cerr << "Ошибка: Некорректный ввод для количества слушателей." << std::endl;
+        }
+        catch (const std::out_of_range& e) 
+        {
+            std::cerr << "Ошибка: Введенное число слишком велико." << std::endl;
+        }
+    }
+}
+
+
+#pragma endregion
 
 #pragma endregion
 
 int main()
 {
     setlocale(LC_ALL, "Russian");
-    FillMusicians();
+    //FillMusicians();
     //PrintMusicians();
 
 #pragma region Задание 1
@@ -2136,16 +1836,16 @@ int main()
     PrintListenersCountIndexes();*/
 
 #pragma endregion
-//
+
 #pragma region Задание 2
 
-    NickNameBenTreeNode* root1 = CreateNickNameTree(); //создание дерева
-    std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
-    printNicknameTreeTable(root1);
-    SkipString();
+    //NickNameBenTreeNode* root1 = CreateNickNameTree(); //создание дерева
+    //std::cout << "Бинарное дерево, построенное по псевдониму исполнителя:" << std::endl;
+    //printNicknameTreeTable(root1);
+    //SkipString();
 
-    performSearchAndLoopN(root1);
-    SkipString();
+    //performSearchAndLoopN(root1);
+    //SkipString();
 
     //AskUserForDeletionLoopN(root1);
     //SkipString();
@@ -2155,8 +1855,8 @@ int main()
     //printListenersTreeTable(root2);
     //SkipString();
 
-    //performSearchAndLoopL(root2);
-    //SkipString();
+    ///*performSearchAndLoopL(root2);
+    //SkipString();*/
 
     //AskUserForDeletionLoopL(root2);
     //SkipString();
@@ -2164,25 +1864,12 @@ int main()
 #pragma endregion
 
 
-//#pragma region Задание 3
-//    
-//    // Создаем список в порядке ввода
-//    LineArray* headInputOrder = CreateList();
-//
-//    // Сортируем список по псевдониму
-//    LineArray* headNickname = SortListByNickname(headInputOrder);
-//
-//    // Сортируем список по количеству слушателей
-//    LineArray* headListeners = SortListByListeners(headInputOrder);
-//
-//    // Выводим списки
-//    PrintList(headInputOrder, "порядке ввода");
-//    PrintList(headNickname, "увеличению псевдонима");
-//    PrintList(headListeners, "увеличению количества слушателей");
-//    SkipString();
-//
-//    PerformOperations(current_ARR_LEN, headNickname, headListeners);
-//
-//#pragma endregion
+#pragma region Задание 3
+
+    CreateList();
+    PerformNicknameSearch();
+    PerformListenersSearch();
+
+#pragma endregion
 
 }
