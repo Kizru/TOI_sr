@@ -1502,6 +1502,7 @@ void AddToHead(LineList*& head, LineList* elem)
         head = elem;
         return;
     }
+
     LineList* curr = head;
     while (curr->next) // Проверяем, пока следующий элемент существует
     {
@@ -1519,11 +1520,13 @@ void AddToHeadName(LineList*& head, LineList* elem)
     }
     LineList* curr = head;
     LineList* prev = nullptr;
+
     while (curr && curr->musician->nickname <= elem->musician->nickname)
     {
         prev = curr;
         curr = curr->nextName;
     }
+
     if (prev)
     {
         prev->nextName = elem;
@@ -1544,11 +1547,12 @@ void AddToHeadListeners(LineList*& head, LineList* elem)
     }
     LineList* curr = head;
     LineList* prev = nullptr;
-    while (curr && curr->musician->listenersCount >= elem->musician->listenersCount)
+    while (curr && curr->musician->listenersCount <= elem->musician->listenersCount)
     {
         prev = curr;
         curr = curr->nextListeners;
     }
+
     if (prev)
     {
         prev->nextListeners = elem;
@@ -1664,6 +1668,10 @@ void PrintList(LineList* head)
 {
     LineList* curr = head;
     int i = 1;
+
+    std::cout << "Элементы в порядке ввода: " << std::endl;
+    SkipString();
+
     while (curr) 
     {
         SkipString();
@@ -1674,15 +1682,20 @@ void PrintList(LineList* head)
         std::cout << "Количество слушателей в месяц у исполнителя: " << curr->musician->listenersCount << std::endl;
         curr = curr->next;
     }
+    PrintLine();
 }
 
 void PrintListInNickOrder(LineList* head) 
 {
     LineList* curr = head;
     int i = 1;
+
+    std::cout << "Элементы, отсортированные по псеводниму исполнителя: " << std::endl;
+    SkipString();
+
     while (curr) 
     {
-        std::cout << std::endl;
+        SkipString();
         std::cout << "Элемент " << i++ << std::endl;
         std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
         std::cout << "Настоящее имя исполнителя: " << curr->musician->realName << std::endl;
@@ -1690,15 +1703,20 @@ void PrintListInNickOrder(LineList* head)
         std::cout << "Количество слушателей в месяц у исполнителя: " << curr->musician->listenersCount << std::endl;
         curr = curr->nextName;
     }
+    PrintLine();
 }
 
 void PrintListInListenersOrder(LineList* head) 
 {
     LineList* curr = head;
     int i = 1;
+
+    std::cout << "Элементы, отсортированные по количеству слушателей у исполнителя: " << std::endl;
+    SkipString();
+
     while (curr) 
     {
-        std::cout << std::endl;
+        SkipString();
         std::cout << "Элемент " << i++ << std::endl;
         std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
         std::cout << "Настоящее имя исполнителя: " << curr->musician->realName << std::endl;
@@ -1706,27 +1724,66 @@ void PrintListInListenersOrder(LineList* head)
         std::cout << "Количество слушателей в месяц у исполнителя: " << curr->musician->listenersCount << std::endl;
         curr = curr->nextListeners;
     }
+    PrintLine();
 }
 
-// Функция для вывода информации о музыканте
-void PrintMusicianInfo(Musician* musician) 
+void PrintAllLists()
 {
-    if (musician) 
+    // Вывод элементов в порядке ввода
+    if (head)
     {
-        std::cout << "Псевдоним: " << musician->nickname << std::endl;
-        std::cout << "Настоящее имя: " << musician->realName << std::endl;
-        std::cout << "Лейбл: " << musician->label << std::endl;
-        std::cout << "Количество слушателей: " << musician->listenersCount << std::endl;
+        PrintList(head);
     }
-    else 
+    else
     {
-        std::cout << "Музыкант не найден" << std::endl;
+        std::cout << "Список пуст" << std::endl;
+        PrintLine();
+    }
+
+    // Вывод элементов, отсортированных по псевдониму
+    if (headName)
+    {
+        PrintListInNickOrder(headName);
+    }
+
+    else
+    {
+        std::cout << "Список, отсортированный по псевдониму, пуст" << std::endl;
+        PrintLine();
+    }
+
+    // Вывод элементов, отсортированных по количеству слушателей
+    if (headListeners)
+    {
+        PrintListInListenersOrder(headListeners);
+    }
+    else
+    {
+        std::cout << "Список, отсортированный по количеству слушателей, пуст" << std::endl;
+        PrintLine();
     }
 }
 
 #pragma endregion
 
 #pragma region Поиск
+
+// Функция для вывода информации о музыканте
+void PrintMusicianInfo(Musician* musician)
+{
+    if (musician)
+    {
+        std::cout << "Псевдоним: " << musician->nickname << std::endl;
+        std::cout << "Настоящее имя: " << musician->realName << std::endl;
+        std::cout << "Лейбл: " << musician->label << std::endl;
+        std::cout << "Количество слушателей: " << musician->listenersCount << std::endl;
+    }
+
+    else
+    {
+        std::cout << "Музыкант не найден" << std::endl;
+    }
+}
 
 // Функция поиска по псевдониму (рекурсивный)
 LineList* SearchByNickname(LineList* current, const std::string& nickname) 
@@ -1744,7 +1801,7 @@ LineList* SearchByNickname(LineList* current, const std::string& nickname)
     return SearchByNickname(current->nextName, nickname);
 }
 
-// Функция поиска по количеству слушателей (итеративный)
+// Функция поиска по количеству слушателей (итерационный)
 LineList* SearchByListeners(LineList* head, uint64_t listeners) 
 {
     LineList* current = head;
@@ -1893,6 +1950,7 @@ void RemoveByNickname()
             // Удаление элемента из сортированного списка по nickname
             LineList* prevName = nullptr;
             LineList* currName = headName;
+
             while (currName && currName != curr) 
             {
                 prevName = currName;
@@ -1913,6 +1971,7 @@ void RemoveByNickname()
 
             LineList* prevListeners = nullptr;
             LineList* currListeners = headListeners;
+
             while (currListeners && currListeners != curr) 
             {
                 prevListeners = currListeners;
@@ -2158,8 +2217,10 @@ int main()
 #pragma region Задание 3
 
     CreateList();
-    /*PerformNicknameSearch();
-    PerformListenersSearch();*/
+    SkipString();
+    //PrintAllLists();
+    PerformNicknameSearch();
+    PerformListenersSearch();
 
     RemoveByNickname();
     PrintLine();
