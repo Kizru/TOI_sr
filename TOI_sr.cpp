@@ -1495,85 +1495,95 @@ LineList* headListeners;
 
 #pragma region Создание списков
 
-void AddToHead(LineList*& head, LineList* elem)
+// добавление в конец основного списка
+void AddToHead(LineList*& head, LineList* element) 
 {
-    if (!head)
-    {
-        head = elem;
+    // Если список пуст
+    if (!head) 
+    { 
+        head = element;
         return;
     }
 
-    LineList* curr = head;
-    while (curr->next) // Проверяем, пока следующий элемент существует
-    {
-        curr = curr->next;
+    LineList* currentElement = head;
+
+    // Нахождение последнего элемента
+    while (currentElement->next) 
+    { 
+        currentElement = currentElement->next;
     }
-    curr->next = elem;
+    currentElement->next = element; // Добавление новый элемент в конец
 }
 
-void AddToHeadName(LineList*& head, LineList* elem)
+// добавление в конец списка по ключу nickname
+void AddToHeadName(LineList*& head, LineList* element)
 {
     if (!head)
     {
-        head = elem;
+        head = element;
         return;
     }
-    LineList* curr = head;
-    LineList* prev = nullptr;
+    LineList* currentElement = head;
+    LineList* previousElement = nullptr;
 
-    while (curr && curr->musician->nickname <= elem->musician->nickname)
+    while (currentElement && currentElement->musician->nickname <= element->musician->nickname)
     {
-        prev = curr;
-        curr = curr->nextName;
+        previousElement = currentElement;
+        currentElement = currentElement->nextName;
     }
 
-    if (prev)
+    if (previousElement)
     {
-        prev->nextName = elem;
+        previousElement->nextName = element;
     }
     else
     {
-        head = elem; // Если элемент становится новым головным
+        head = element; // Если элемент становится новым головным
     }
-    elem->nextName = curr;
+    element->nextName = currentElement;
 }
 
-void AddToHeadListeners(LineList*& head, LineList* elem)
+// добавление в конец списка по ключу ListenersCount
+void AddToHeadListeners(LineList*& head, LineList* element)
 {
     if (!head)
     {
-        head = elem;
+        head = element;
         return;
     }
-    LineList* curr = head;
-    LineList* prev = nullptr;
-    while (curr && curr->musician->listenersCount <= elem->musician->listenersCount)
+    LineList* currentElement = head;
+    LineList* previousElement = nullptr;
+
+    //поиск подходящей позиции
+    while (currentElement && currentElement->musician->listenersCount <= element->musician->listenersCount)
     {
-        prev = curr;
-        curr = curr->nextListeners;
+        previousElement = currentElement;
+        currentElement = currentElement->nextListeners;
     }
 
-    if (prev)
+
+    if (previousElement)
     {
-        prev->nextListeners = elem;
+        previousElement->nextListeners = element;
     }
     else
     {
-        head = elem; // Если элемент становится новым головным
+        head = element; // элемент становится новым головным
     }
-    elem->nextListeners = curr;
+    element->nextListeners = currentElement;
 }
 
-bool IsNicknameUnique(LineList* head, const std::string& nickname)
+bool UniqueCheck(LineList* head, const std::string& nickname)
 {
-    LineList* curr = head;
-    while (curr)
+    LineList* currentElement = head;
+
+    while (currentElement)
     {
-        if (curr->musician && curr->musician->nickname == nickname)
+        if (currentElement->musician && currentElement->musician->nickname == nickname)
         {
             return false; // Никнейм уже существует
         }
-        curr = curr->next;
+        currentElement = currentElement->next;
     }
     return true; // Никнейм уникален
 }
@@ -1591,9 +1601,9 @@ Musician* GetNewMusician(LineList* head)
         std::cin >> nickname;
 
         // Проверяем уникальность nickname
-        if (!IsNicknameUnique(head, nickname))
+        if (!UniqueCheck(head, nickname))
         {
-            std::cout << "Музыкант с таким псевдонимом уже существует. Введите другой псевдоним." << std::endl;
+            std::cout << "Музыкант с таким псевдонимом был введен, псевдонимы должны быть уникальными" << std::endl;
             continue; // Запрашиваем ввод снова
         }
         break; // Если nickname уникален, выходим из цикла
@@ -1604,6 +1614,7 @@ Musician* GetNewMusician(LineList* head)
     std::cout << "Введите лейбл артиста: ";
     std::cin >> label;
 
+    //ввод количества случаев и проверка на это
     while (!isConverted)
     {
         std::cout << "Введите количество слушателей в месяц у артиста: ";
@@ -1612,6 +1623,7 @@ Musician* GetNewMusician(LineList* head)
         {
             size_t pos;
             number = stoul(count, &pos);
+
             if (pos == count.length())
                 isConverted = true;
             else
@@ -1643,10 +1655,11 @@ void CreateList()
         {
             SkipString();
 
-            // Вызываем GetNewMusician, передавая голову списка для проверки уникальности nickname
+            // Вызываем GetNewMusician для заполнения полей у объектов
             Musician* musician = GetNewMusician(head);
 
             LineList* element = new LineList(musician);
+
             AddToHead(head, element);
             AddToHeadListeners(headListeners, element);
             AddToHeadName(headName, element);
@@ -1663,64 +1676,66 @@ void CreateList()
 
 void PrintList(LineList* head)
 {
-    LineList* curr = head;
+    LineList* currentElement = head;
     int i = 1;
 
     std::cout << "Элементы в порядке ввода: " << std::endl;
 
-    while (curr)
+    while (currentElement)
     {
         std::cout << "Элемент " << i++ << std::endl;
-        if (curr->musician)
+
+        //если элемент создан, то выводим его
+        if (currentElement->musician)
         {
-            std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
-            std::cout << "Настоящее имя исполнителя: " << curr->musician->realName << std::endl;
-            std::cout << "Лейбл исполнителя: " << curr->musician->label << std::endl;
-            std::cout << "Количество слушателей в месяц у исполнителя: " << curr->musician->listenersCount << std::endl;
+            std::cout << "Псевдоним исполнителя: " << currentElement->musician->nickname << std::endl;
+            std::cout << "Настоящее имя исполнителя: " << currentElement->musician->realName << std::endl;
+            std::cout << "Лейбл исполнителя: " << currentElement->musician->label << std::endl;
+            std::cout << "Количество слушателей в месяц у исполнителя: " << currentElement->musician->listenersCount << std::endl;
         }
-        curr = curr->next;
+        currentElement = currentElement->next;
     }
     PrintLine();
 }
 
-void PrintListInNickOrder(LineList* head)
+void PrintNicknameList(LineList* head)
 {
-    LineList* curr = head;
+    LineList* currentElement = head;
     int i = 1;
 
     std::cout << "Элементы, отсортированные по псеводниму исполнителя: " << std::endl;
     SkipString();
 
-    while (curr)
+    while (currentElement)
     {
         SkipString();
         std::cout << "Элемент " << i++ << std::endl;
-        std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
-        std::cout << "Настоящее имя исполнителя: " << curr->musician->realName << std::endl;
-        std::cout << "Лейбл исполнителя: " << curr->musician->label << std::endl;
-        std::cout << "Количество слушателей в месяц у исполнителя: " << curr->musician->listenersCount << std::endl;
-        curr = curr->nextName;
+        std::cout << "Псевдоним исполнителя: " << currentElement->musician->nickname << std::endl;
+        std::cout << "Настоящее имя исполнителя: " << currentElement->musician->realName << std::endl;
+        std::cout << "Лейбл исполнителя: " << currentElement->musician->label << std::endl;
+        std::cout << "Количество слушателей в месяц у исполнителя: " << currentElement->musician->listenersCount << std::endl;
+        currentElement = currentElement->nextName;
     }
     PrintLine();
 }
 
-void PrintListInListenersOrder(LineList* head)
+void PrintListenersList(LineList* head)
 {
-    LineList* curr = head;
+    LineList* currentElemet = head;
     int i = 1;
 
     std::cout << "Элементы, отсортированные по количеству слушателей у исполнителя: " << std::endl;
     SkipString();
 
-    while (curr)
+    while (currentElemet)
     {
         SkipString();
         std::cout << "Элемент " << i++ << std::endl;
-        std::cout << "Псевдоним исполнителя: " << curr->musician->nickname << std::endl;
-        std::cout << "Настоящее имя исполнителя: " << curr->musician->realName << std::endl;
-        std::cout << "Лейбл исполнителя: " << curr->musician->label << std::endl;
-        std::cout << "Количество слушателей в месяц у исполнителя: " << curr->musician->listenersCount << std::endl;
-        curr = curr->nextListeners;
+        std::cout << "Псевдоним исполнителя: " << currentElemet->musician->nickname << std::endl;
+        std::cout << "Настоящее имя исполнителя: " << currentElemet->musician->realName << std::endl;
+        std::cout << "Лейбл исполнителя: " << currentElemet->musician->label << std::endl;
+        std::cout << "Количество слушателей в месяц у исполнителя: " << currentElemet->musician->listenersCount << std::endl;
+        currentElemet = currentElemet->nextListeners;
     }
     PrintLine();
 }
@@ -1732,6 +1747,7 @@ void PrintAllLists()
     {
         PrintList(head);
     }
+
     else
     {
         std::cout << "Список пуст" << std::endl;
@@ -1739,34 +1755,17 @@ void PrintAllLists()
     }
 
     // Вывод элементов, отсортированных по псевдониму
-    if (headName)
-    {
-        PrintListInNickOrder(headName);
-    }
-
-    else
-    {
-        std::cout << "Список, отсортированный по псевдониму, пуст" << std::endl;
-        PrintLine();
-    }
+    PrintNicknameList(headName);
 
     // Вывод элементов, отсортированных по количеству слушателей
-    if (headListeners)
-    {
-        PrintListInListenersOrder(headListeners);
-    }
-    else
-    {
-        std::cout << "Список, отсортированный по количеству слушателей, пуст" << std::endl;
-        PrintLine();
-    }
+    PrintListenersList(headListeners);
 }
 
 #pragma endregion
 
 #pragma region Поиск
 
-// Функция для вывода информации о музыканте
+// Вывод информации о музыканте
 void PrintMusicianInfo(Musician* musician)
 {
     if (musician)
@@ -1784,33 +1783,33 @@ void PrintMusicianInfo(Musician* musician)
 }
 
 // Рекурсивный поиск по псевдониму
-LineList* SearchByNickname(LineList* current, const std::string& nickname)
+LineList* SearchByNickname(LineList* currentElement, const std::string& nickname)
 {
-    if (!current || !current->musician) // Проверяем, что current и musician не равны nullptr
+    if (!currentElement || !currentElement->musician) // Проверяем, что current и musician не равны nullptr
     {
         return nullptr;
     }
 
-    if (current->musician->nickname == nickname)
+    if (currentElement->musician->nickname == nickname)
     {
-        return current; // Возвращаем указатель на найденный элемент
+        return currentElement; // Возвращаем указатель на найденный элемент
     }
 
-    return SearchByNickname(current->nextName, nickname); // Рекурсивный вызов для следующего элемента
+    return SearchByNickname(currentElement->nextName, nickname); // Рекурсивный вызов для следующего элемента
 }
 
 // Итерационный поиск по количеству слушателей
 LineList* SearchByListeners(LineList* head, uint64_t listeners)
 {
-    LineList* current = head;
+    LineList* currentElement = head;
 
-    while (current && current->musician) // Проверяем, что current и musician не равны nullptr
+    while (currentElement && currentElement->musician) // Проверяем, что current и musician не равны nullptr
     {
-        if (current->musician->listenersCount == listeners)
+        if (currentElement->musician->listenersCount == listeners)
         {
-            return current; // Возвращаем указатель на найденный элемент
+            return currentElement; // Возвращаем указатель на найденный элемент
         }
-        current = current->nextListeners; // Переходим к следующему элементу
+        currentElement = currentElement->nextListeners; // Переходим к следующему элементу
     }
 
     return nullptr; // Элемент не найден
